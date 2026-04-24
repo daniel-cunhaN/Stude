@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:15
+    container_name: stude_db
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: UTXU@RmDag8HfCdWXdm3
+      POSTGRES_DB: stude
+    ports:
+      - "5432:5432"
+  python_app:
+    build:
+      dockerfile: docker/dockerfile
+      context: ..
+    container_name: python_app
+    ports:
+      - "8501:8501"
+    volumes: #Volume para manter app no disco para não ter que buildar toda vez que mudar o código
+      - ../:/pastadocker
+    command: sh -c "streamlit run app.py"
