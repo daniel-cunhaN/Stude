@@ -2,12 +2,9 @@ services:
   db:
     image: postgres:15
     container_name: stude_db
-    environment:
-      POSTGRES_USER: postgres 
-      POSTGRES_PASSWORD: UTXU@RmDag8HfCdWXdm3
-      POSTGRES_DB: stude
     ports:
       - "5432:5432"
+      - .env
   python_app:
     build:
       dockerfile: docker/dockerfile
