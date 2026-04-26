@@ -1,5 +1,5 @@
 ﻿Propriedade, Fim                                , Hora            , Min, Pausas (min), Start                              , StartBT, StopBT, Tags
-           , 6 de janeiro de 2026 20:37 (BRT)   , "0"               ,   0,             , 6 de janeiro de 2026 20:37 (BRT)   ,        ,       , Revisão
+           , 6 de janeiro de 2026 20:37 (BRT)   , "0"             ,   0,            0, 6 de janeiro de 2026 20:37 (BRT)   ,        ,       , Revisão
            , 7 de janeiro de 2026 11:54 (BRT)   , "0,15"          ,   9,            2, 7 de janeiro de 2026 11:43 (BRT)   ,        ,       , Web
            , 7 de janeiro de 2026 14:05 (BRT)   , "0,583333333333",  35,            5, 7 de janeiro de 2026 13:25 (BRT)   ,        ,       , Web
            , 8 de janeiro de 2026 9:45 (BRT)    , "0,083333333333",   5,             , 8 de janeiro de 2026 9:40 (BRT)    ,        ,       , Revisão
@@ -158,7 +158,7 @@
            , 16 de março de 2026 10:46 (BRT)    , "0,316666666667",  19,           10, 16 de março de 2026 10:17 (BRT)    ,        ,       , Infra
            , 16 de março de 2026 11:05 (BRT)    , "0,2"           ,  12,            5, 16 de março de 2026 10:48 (BRT)    ,        ,       , Infra
            , 16 de março de 2026 12:07 (BRT)    , "0,433333333333",  26,             , 16 de março de 2026 11:41 (BRT)    ,        ,       , Infra
-           , 16 de março de 2026 15:12 (BRT)    , "1"               ,  60,             , 16 de março de 2026 14:12 (BRT)    ,        ,       , Dados
+           , 16 de março de 2026 15:12 (BRT)    , "1"             ,  60,             , 16 de março de 2026 14:12 (BRT)    ,        ,       , Dados
            , 16 de março de 2026 16:34 (BRT)    , "0,966666666667",  58,            5, 16 de março de 2026 15:31 (BRT)    ,        ,       , Dados
            , 17 de março de 2026 6:35 (BRT)     , "0,333333333333",  20,             , 17 de março de 2026 6:15 (BRT)     ,        ,       , Dados
            , 17 de março de 2026 7:43 (BRT)     , "0,033333333333",   2,             , 17 de março de 2026 7:41 (BRT)     ,        ,       , Revisão
