@@ -1,9 +1,10 @@
 import streamlit as st
-from metodos.database import inicia_conexao
+from metodos.database import iniciar_conexao, criar_tabelas
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
 
-con = inicia_conexao()
+con = iniciar_conexao()
+criar_tabelas()
 
 st.title("📚 Stude")
 
