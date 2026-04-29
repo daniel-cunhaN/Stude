@@ -1,83 +1,104 @@
 import streamlit as st
-from metodos.database import iniciar_conexao, criar_tabelas
+from datetime import datetime
+from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
+
+st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
 
 con = iniciar_conexao()
 criar_tabelas(con)
 
-st.set_page_config(page_title="Stude", page_icon="📚",  layout="centered")
+# Se a variável 'estudando' não existir cria ela como Falsa
+if 'estudando' not in st.session_state:
+    st.session_state.estudando = False
+
+# Se a hora de início não existir, criamos ela vazia
+if 'hora_inicio' not in st.session_state:
+    st.session_state.hora_inicio = None
+
 
 tab1, tab2 = st.tabs(["Ciclos de Estudo", "Configurações"])
 
 #########################
 # ABA 1 Ciclos de Estudo
 ###########################
-
 with tab1:
-    ##############################
-    # Botões principais (Start, Stop, Tags e Pause)
-    ##############################
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.write("\n")
-        st.write("\n")
+        st.write("\n\n")
         start = st.button("Start", use_container_width=True) 
         
+        # 2. LÓGICA DO START
+        if start and not st.session_state.estudando:
+            st.session_state.hora_inicio = datetime.now() # Guarda a hora exata agora!
+            st.session_state.estudando = True
+            st.info("⏱️ O tempo está rodando! Bons estudos.")
+            
     with col2:
-        st.write("\n")
-        st.write("\n")
+        st.write("\n\n")
+        tradutor_tags = obter_tags(con)
         tag = st.selectbox(
             "Escolha de tag", 
-            options=["Matéria"],
-            label_visibility="collapsed"
+            options=list(tradutorTags.keys()),
+            label_visibility="collapsed",
+            index=None;
+            placeholder="Matéria"
         )
         
     with col3:
-        st.write("\n")
-        st.write("\n")
+        st.write("\n\n")
         stop = st.button("Stop", use_container_width=True)
+        
+        # 3. LÓGICA DO STOP
+        if stop and st.session_state.estudando:
+            hora_fim = datetime.now()
+            
+            # Faz a continha: Hora Fim menos Hora Início
+            tempo_total = hora_fim - st.session_state.hora_inicio
+            minutos_estudo = int(tempo_total.total_seconds() / 60)
+            
+            # (Opcional) Se você parar muito rápido durante os testes, ele salva pelo menos 1 min
+            if minutos_estudo == 0:
+                minutos_estudo = 1 
+                
+            # Esvazia a mochila para a próxima sessão
+            st.session_state.estudando = False
+            st.session_state.hora_inicio = None
+            
+            # Mostra o resultado na tela!
+            st.success(f"🎉 Sessão finalizada! Você estudou por {minutos_estudo} minutos.")
 
     with col4:
-        pause = st.number_input("Tempo de Pausa", min_value=1, step=1)
+        # Renomeei a variável para não conflitar com a palavra "pause"
+        minutos_pausa = st.number_input("Tempo de Pausa", min_value=0, step=1)
 
     st.markdown("---")
     
-    # Row 2: Aggregation Functions (Purple)
     col5, col6, col7 = st.columns(3)
-    
     with col5:
         st.metric(label="Horas feitas hoje x Meta semanal", value="2h / 15h")
-        
     with col6:
         st.metric(label="Horas na semana x Meta mensal", value="12h / 60h")
-        
     with col7:
         st.metric(label="Horas feitas no mês", value="45h")
 
     st.markdown("---")
     
-    # Notas
-    notas = st.text_area(
-        "Espaço para escrever:",
-        value="Substituir valor",
-        height=150
-    )
+    notas = st.text_area("Espaço para escrever:", value="Substituir valor", height=150)
 
-#########################
-# ABA 2 CONFIGURAÇÕES
-###########################
-with tab2:
-    st.write("Configurações do sistema ficarão aqui.")
-    # You can add configuration options here later
-    
-    
 
-# if submit_button:
-#     with con.cursor() as cur:
-#         cur.execute("""
-#             INSERT INTO log_estudo (data, minutos, pausas_min, tag_id)
-#             VALUES (%s, %s, %s, %s)
-#         """, (data_estudo, minutos_estudo, minutos_pausa, tag_escolhida))
+# ==========================================
+# 4. SALVANDO NO BANCO DE DADOS
+# ==========================================
+if stop and 'minutos_estudo' in locals():
+    # Pegamos a data de hoje para salvar
+    data_estudo = datetime.now().date()
+    tag_escolhida = tag
+
+    with con.cursor() as cur:
+        cur.execute("""
+            INSERT INTO log_estudo (data, minutos, pausas_min, tag_id)
+            VALUES (%s, %s, %s, %s)
+        """, (data_estudo, minutos_estudo, minutos_pausa, tag_escolhida))
         
-#     con.commit() 
-#     st.success("Sessão salva com sucesso!")
+    con.commit()

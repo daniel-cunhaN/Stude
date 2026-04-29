@@ -2,7 +2,8 @@ import psycopg2
 import streamlit as st
 import os
 
-@st.cache_resource #mantém o cache de conexão do streamlit
+@st.cache_resource #mantém o cache de conexão do streamlit para que o usuário nao precise recarregar a pagina
+# a cada botão clicado
 def iniciar_conexao():
     return psycopg2.connect(
         host=os.getenv("host"),
@@ -50,3 +51,22 @@ def criar_tabelas(con):
         """)
         
     con.commit()
+
+def obter_tags(con):
+    with con.cursor() as cur:
+        # Pede para o banco: "Me dê o texto e o ID de todas as tags, em ordem alfabética"
+        cur.execute("SELECT tag, id FROM tags ORDER BY tag;")
+        
+        # Pega todas as respostas do banco
+        resultados = cur.fetchall() 
+        
+        # Cria um dicionário vazio
+        tradutor_dinamico = {}
+        
+        # Preenche o dicionário com o que veio do banco
+        for linha in resultados:
+            nome_da_tag = linha[0] # Ex: "Matemática"
+            id_da_tag = linha[1]   # Ex: 2
+            tradutor_dinamico[nome_da_tag] = id_da_tag
+            
+        return tradutor_dinamico
