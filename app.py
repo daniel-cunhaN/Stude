@@ -4,6 +4,7 @@ from datetime import datetime
 import time
 import pandas as pd
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
+# from metodos.agregacao import
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
 
@@ -30,10 +31,9 @@ tab1, tab2 = st.tabs(["Ciclos de Estudo", "Configurações"])
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
 with tab1:
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
     
-    with col1:
-        st.write("\n\n")
+    with col1: #START
         start = st.button("Start", use_container_width=True) 
         
         # 2. LÓGICA DO START
@@ -42,8 +42,7 @@ with tab1:
             st.session_state.estudando = True
             st.toast("⏱️ O tempo está rodando! Bons estudos.")
             
-    with col2:
-        st.write("\n\n")
+    with col2: # SELEÇÃO DE MATÉRIA
         tag_selecionada = st.selectbox(
             "Escolha de tag", 
             options=list(tradutorTags.keys()),
@@ -52,8 +51,7 @@ with tab1:
             placeholder="Matéria"
         )
         
-    with col3:
-        st.write("\n\n")
+    with col3: # STOP
         stop = st.button("Stop", use_container_width=True)
         
         # 3. LÓGICA DO STOP
@@ -74,9 +72,8 @@ with tab1:
             # Mostra o resultado na tela!
             st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudo} minutos.")
 
-    with col4:
-        # Renomeei a variável para não conflitar com a palavra "pause"
-        minutos_pausa = st.number_input("Tempo de Pausa", min_value=0, step=1)
+    with col4: # PAUSA
+        minutos_pausa = st.number_input("", min_value=0, step=1)
 
     st.divider()
     
@@ -157,7 +154,7 @@ with tab2:
                 con.rollback()
                 st.error(f"Erro ao excluir matéria: {e}")
 # ==========================================
-# 2.2 Visualização de Tags
+# 2.1 Visualização de Tags
 # ==========================================
     queryTags = """
     SELECT tag FROM tags
