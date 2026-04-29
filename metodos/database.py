@@ -8,8 +8,11 @@ def iniciar_conexao():
     return psycopg2.connect(
         host=os.getenv("host"),
         user=os.getenv("user"),
+        port=os.getenv("port"),
         password=os.getenv("password"),
-        dbname=os.getenv("dbname")
+        dbname=os.getenv("dbname"),
+        sslmode="require",
+        connect_timeout=5
     )
 
 def criar_tabelas(con): 
@@ -42,14 +45,6 @@ def criar_tabelas(con):
             horas_alvo INT NOT NULL
         );
         """)
-
-        # 4. Cria tag default para previnir crash no primeiro save
-        cur.execute("""
-        INSERT INTO tags (id, tag) 
-        VALUES (1, 'Geral') 
-        ON CONFLICT (id) DO NOTHING;
-        """)
-        
     con.commit()
 
 def obter_tags(con):
@@ -69,4 +64,4 @@ def obter_tags(con):
             id_da_tag = linha[1]   # Ex: 2
             tradutor_dinamico[nome_da_tag] = id_da_tag
             
-        return tradutor_dinamico
+    return tradutor_dinamico
