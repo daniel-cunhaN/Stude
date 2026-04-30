@@ -3,7 +3,7 @@ from metodos.database import iniciar_conexao
 
 con = iniciar_conexao()
 
-def agregacoes(con):
+def agregar_horas(con):
     with con.cursor() as cur:
         # Horas feitas hoje
         cur.execute("SELECT SUM(minutos) FROM log_estudo WHERE data = CURRENT_DATE")
@@ -20,7 +20,7 @@ def agregacoes(con):
 
 
         # Horas feitas no mês
-        cur.execute("SELECT SUM(minutos) FROM log_estudo WHERE date_trunc('month', data) = date_trunc('month', CURRENT_DATE);")'")
+        cur.execute("SELECT SUM(minutos) FROM log_estudo WHERE date_trunc('month', data) = date_trunc('month', CURRENT_DATE)")
         resultado_mes = cur.fetchone()[0]
         minutos_mes = resultado_mes if resultado_mes else 0
         horas_mes = int(minutos_mes / 60)
