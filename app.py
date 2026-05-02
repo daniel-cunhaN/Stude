@@ -110,85 +110,9 @@ with tab1:
             cur.execute("UPDATE notas SET texto = %s WHERE id = 1;", (nota_nova,))
         con.commit()
         st.toast("✅ Nota salva!")
-# ==========================================
-# 2. ABA 2: CONFIGURAÇÕES
-# ==========================================
-with tab2:
-    
-    st.markdown("#### Configure suas matérias e Visualize")
-    
-    with st.form("configuracoes_form", clear_on_submit=True):
-        col_input, col_botao = st.columns([3, 1])
-
-        with col_input:
-            nova_materia = st.text_input(
-                "Digite o nome da matéria", 
-                placeholder="Crie sua matéria aqui",
-                label_visibility="collapsed" 
-            )
-
-        with col_botao:
-            submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True)
-
-        col_input2, col_botao2 = st.columns([3, 1])
-
-        with col_input2:
-            tag_excluir = st.selectbox("Excluir matéria", options=list(tradutorTags.keys()), label_visibility="collapsed", placeholder="Selecione a matéria para exclusão")
-        
-        with col_botao2:
-            btn_excluir = st.form_submit_button("Excluir", use_container_width=True)
-        
-    if submit_materia:
-        if nova_materia.strip() == "":
-            st.warning("⚠️ O nome da matéria não pode ser vazio!")
-        else:
-            try:
-                with con.cursor() as cur:
-                    cur.execute("""
-                        INSERT INTO tags (tag) 
-                        VALUES (%s);
-                    """, (nova_materia.capitalize(),))
-                
-                con.commit()
-                st.success(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
-                time.sleep(1)
-                st.rerun()
-            except Exception as e:
-                con.rollback()
-                st.error(f"Erro ao salvar matéria: {e}")
-            
-    if btn_excluir:
-        if tag_excluir:
-            try:
-                id_excluir = tradutorTags[tag_excluir]
-                with con.cursor() as cur:
-                    # Tenta deletar a tag
-                    cur.execute("DELETE FROM tags WHERE id = %s;", (id_excluir,))
-                con.commit()
-                st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
-                time.sleep(1)
-                st.rerun()
-            except psycopg2.errors.ForeignKeyViolation:
-                con.rollback()
-                st.error(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
-            except Exception as e:
-                con.rollback()
-                st.error(f"Erro ao excluir matéria: {e}")
-# ==========================================
-# 2.1 Visualização de Tags
-# ==========================================
-    queryTags = """
-    SELECT tag FROM tags
-    """
-    visualizarTags = pd.read_sql(queryTags, con)
-    if not visualizarTags.empty:
-        visualizarTags.fillna('', inplace=True) 
-        st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum registro encontrado ainda.")
 
 # ==========================================
-# 3. SALVANDO NO BANCO DE DADOS
+# 1.1. SALVANDO NO BANCO DE DADOS
 # ==========================================
 if stop and 'minutos_estudo' in locals():
     # Pegamos a data de hoje para salvar
@@ -210,3 +134,113 @@ if stop and 'minutos_estudo' in locals():
         except Exception as e:
             con.rollback()
             st.error(f"Erro ao salvar sessão de estudo: {e}")
+# ==========================================
+# 2. ABA 2: CONFIGURAÇÕES
+# ==========================================
+with tab2:
+    st.markdown("#### Configure suas matérias e Visualize")
+    
+    with st.form("configuracoes_form", clear_on_submit=True):
+        col_input, col_botao = st.columns([3, 1])
+
+        # ==========================================
+        # 2.1 Criação de matéria
+        # ========================================== 
+        with col_input:
+            nova_materia = st.text_input(
+                "Digite o nome da matéria", 
+                placeholder="Crie sua matéria aqui",
+                label_visibility="collapsed" 
+            )
+
+        with col_botao:
+            submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True)
+
+        # ==========================================
+        # 2.2 Exclusão de matéria
+        # ==========================================
+        col_input2, col_botao2 = st.columns([3, 1])
+
+        with col_input2:
+            tag_excluir = st.selectbox(
+                "Excluir matéria", 
+                options=list(tradutorTags.keys()), 
+                label_visibility="collapsed", 
+                placeholder="Selecione a matéria para exclusão"
+            )
+        
+        with col_botao2:
+            submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
+        
+        # ==========================================
+        # 2.3 Criação de Meta
+        # ==========================================
+        meta_input, meta_salvar_bt = st.columns([3, 1], vertical_alignment="bottom")
+
+        with meta_input:
+            nova_meta = st.text_input("", placeholder="Digite quantas hora será sua meta")
+
+        with meta_salvar_bt:
+            submit_meta = st.form_submit_button("Salvar Meta", use_container_width=True)
+            
+    # ==========================================
+    # 2.4 Condicionais de Criação e Exclusão
+    # ========================================== 
+    if submit_materia:
+        if nova_materia.strip() == "":
+            st.warning("⚠️ O nome da matéria não pode ser vazio!")
+        else:
+            try:
+                with con.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO tags (tag) 
+                        VALUES (%s);
+                    """, (nova_materia.capitalize(),))
+                
+                con.commit()
+                st.success(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                con.rollback()
+                st.error(f"Erro ao salvar matéria: {e}")
+            
+    if submit_excluirMateria:
+        if tag_excluir:
+            try:
+                id_excluir = tradutorTags[tag_excluir]
+                with con.cursor() as cur:
+                    cur.execute("DELETE FROM tags WHERE id = %s;", (id_excluir,))
+                con.commit()
+                st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
+                time.sleep(1)
+                st.rerun()
+            except psycopg2.errors.ForeignKeyViolation:
+                con.rollback()
+                st.error(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
+            except Exception as e:
+                con.rollback()
+                st.error(f"Erro ao excluir matéria: {e}")
+                
+    if submit_meta:
+        st.toast(f"🎯 Meta de {nova_meta} horas salva com sucesso!")
+
+    # ===============================================
+    # 2.5 Condicionais de Criação e Exclusão de Metas
+    # =============================================== 
+
+
+# ==========================================
+# 2.6 Visualização de Tags
+# ==========================================
+    queryTags = """
+    SELECT tag FROM tags
+    """
+    visualizarTags = pd.read_sql(queryTags, con)
+    if not visualizarTags.empty:
+        visualizarTags.fillna('', inplace=True) 
+        st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum registro encontrado ainda.")
+        
+        st.divider()
