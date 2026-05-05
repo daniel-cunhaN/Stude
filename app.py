@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 import pandas as pd
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
-from metodos.agregacao import agregar_horas
+from metodos.horas_e_metas import agregar_horas, extrair_metas
 
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
@@ -16,8 +16,6 @@ except:
     pass
 criar_tabelas(con)
 tradutorTags = obter_tags(con)
-horas_hoje, horas_semana, horas_mes = agregar_horas(con)
-
 
 # Se a variável 'estudando' não existir cria ela como Falsa
 if 'estudando' not in st.session_state:
@@ -61,7 +59,7 @@ with tab1:
         if stop and st.session_state.estudando:
             hora_fim = datetime.now()
             
-            tempo_total = hora_fim - st.session_state.hora_inicio
+            tempo_total = (hora_fim)-(st.session_state.hora_inicio)
             minutos_estudo = int(tempo_total.total_seconds() / 60)
             
             # Se você parar muito rápido durante os testes, ele salva pelo menos 1 min
@@ -81,15 +79,17 @@ with tab1:
     st.divider()
     
     # Área de horas estudadas X metas
-    
-    col5, col6, col7 = st.columns(3)
-    with col5:
-        st.metric(label="Horas feitas hoje x Meta semanal", value=f"{horas_hoje}h") # falta a meta
-    with col6:
-        st.metric(label="Horas na semana x Meta mensal", value=f"{horas_semana}h    ") # falta a meta
-    with col7:
-        st.metric(label="Horas feitas no mês", value=f"{horas_mes}h") # falta a meta
 
+    horas_hoje, horas_semana, horas_mes = agregar_horas(con)
+    meta_semana, meta_mes = extrair_metas(con)
+    
+    col5, col6, col7 = st.columns(3, vertical_alignment="bottom")
+    with col5:
+        st.metric(label="Horas feitas hoje x Meta semanal", value=f"{horas_hoje}h/{meta_semana}h")
+    with col6:
+        st.metric(label="Horas feitas na semana x Meta mensal", value=f"{horas_semana}h/{meta_mes}h") 
+    with col7:
+        st.metric(label="Horas feitas no mês", value=f"{horas_mes}h") 
     st.divider() 
 
     # Notas

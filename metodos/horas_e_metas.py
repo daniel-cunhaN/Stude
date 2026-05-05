@@ -25,4 +25,21 @@ def agregar_horas(con):
         minutos_mes = resultado_mes if resultado_mes else 0
         horas_mes = int(minutos_mes / 60)
 
-        return horas_hoje, horas_semana, horas_mes  
+        return horas_hoje, horas_semana, horas_mes 
+
+def extrair_metas(con):
+    with con.cursor() as cur:
+        cur.execute("SELECT tipo_meta, horas_alvo FROM metas")
+        resultados = cur.fetchall()
+
+        meta_semana = 0
+        meta_mes = 0
+        for item in resultados:
+            tipo = item[0]
+            horas = item[1]
+
+            if tipo == 'semanal':
+                meta_semana = horas
+            elif tipo == 'mensal':
+                meta_mes = horas
+    return meta_semana, meta_mes
