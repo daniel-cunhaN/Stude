@@ -8,7 +8,7 @@ from metodos.horas_e_metas import agregar_horas, extrair_metas
 
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
-
+st.title("🖊️Stude")
 con = iniciar_conexao()
 try:
     con.rollback() # Limpa qualquer transação falha residual
@@ -35,6 +35,7 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
     
     with col1: #START
+        st.caption("Iniciar Temporizador")
         start = st.button("Start", use_container_width=True) 
         
         # LÓGICA DO START
@@ -44,6 +45,7 @@ with tab1:
             st.toast("⏱️ O tempo está rodando! Bons estudos.")
             
     with col2: # SELEÇÃO DE MATÉRIA
+        st.caption("Selecione sua matéria")
         tag_selecionada = st.selectbox(
             "Escolha de tag", 
             options=list(tradutorTags.keys()),
@@ -52,7 +54,11 @@ with tab1:
             placeholder="Matéria"
         )
         
-    with col3: # STOP
+    with col3: # PAUSA
+        minutos_pausa = st.number_input("⏸️ Minutos Ociosos", min_value=0, step=1)
+
+    with col4: # STOP
+        st.caption("Parar Temporizador")
         stop = st.button("Stop", use_container_width=True)
         
         # LÓGICA DO STOP
@@ -73,8 +79,7 @@ with tab1:
             # Mostra o resultado na tela
             st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudo} minutos.")
 
-    with col4: # PAUSA
-        minutos_pausa = st.number_input("", min_value=0, step=1)
+
 
     st.divider()
     
@@ -138,7 +143,7 @@ if stop and 'minutos_estudo' in locals():
 # 2. ABA 2: CONFIGURAÇÕES
 # ==========================================
 with tab2:
-    st.markdown("#### Configure suas matérias e Visualize")
+    st.markdown("#### Configure suas matérias e visualize-as")
     
     with st.form("configuracoes_form", clear_on_submit=True):
         col_input, col_botao = st.columns([3, 1])
