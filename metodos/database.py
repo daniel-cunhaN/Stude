@@ -22,7 +22,7 @@ def criar_tabelas(con):
             cur.execute("""
             CREATE TABLE IF NOT EXISTS tags(
                 id SERIAL PRIMARY KEY,
-                tag VARCHAR(50)
+                tag VARCHAR(50) UNIQUE
             );
             """)
             
