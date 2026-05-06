@@ -18,7 +18,7 @@ Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas 
 ### Instalação
 1. Faça o clone do repositório:
 ```bash
-git clone [https://github.com/dev-DanielNascimento/Stude.git](https://github.com/dev-DanielNascimento/Stude.git)
+git clone https://github.com/dev-DanielNascimento/Stude.git
 ```
 Escolha um banco de dados PostgreSQL de sua preferência (ex: Supabase), crie credenciais IPv4 e insira no arquivo .env. Atenção: Neste arquivo local, não use espaços ou aspas. Exemplo:
 
@@ -39,7 +39,7 @@ Start_App.bat
 ## ☁️ Setup na Nuvem (Deploy)
 Para hospedar o aplicativo gratuitamente utilizando o Streamlit Community Cloud:
 
-Acesse a página de deploy do Streamlit (share.streamlit.io/deploy) e conecte com este repositório, escolhendo obrigatoriamente a branch webapp.
+Acesse a página de deploy do Streamlit (https://share.streamlit.io/deploy) e conecte com este repositório, escolhendo obrigatoriamente a branch webapp.
 
 Escolha o banco de dados de produção. Na tela de deploy do Streamlit, vá em Advanced Settings > Secrets e insira as credenciais utilizando o formato TOML (com aspas e espaços). Exemplo:
 ```bash
