@@ -46,7 +46,16 @@ for texto, numero in tradutor_meses.items(): #Pega texto e numero do dicionario
     df['Start'] = df['Start'].str.replace(texto, numero) # Substitui o texto pelo numero do dicionário, ficando DD/MM/AAAA 00:00
 
 df['Start'] = pd.to_datetime(df['Start'], format='%d/%m/%Y %H:%M') #Converte texto da data para número para posterior edição
-
 df['Start'] = df['Start'].dt.date # Retira as horas e minutos e só deixa a data
+
+df = df.rename(columns={'Start': 'data', 'Pausas (min)': 'pausas_min', 'Tags': 'tag_id'})
+
+tags = df['tag_id'].unique().tolist() # Extrai tags unicas (ex: Dados, Revisão...)
+print(tags)
+dicionario_valores = {}
+for numero, valor in enumerate(tags, start=1): # Atribui às tags id único
+    dicionario_valores[valor] = numero
+
+df['tag_id'] = df['tag_id'].map(dicionario_valores) # Substitui as tags pelos ids
 
 df.to_csv('limpeza_dados/dadosLimpos.csv', index=False, encoding = 'utf-8') # Salva em arquivo novo
