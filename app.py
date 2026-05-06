@@ -80,16 +80,16 @@ with tab1:
     
     # Área de horas estudadas X metas
 
-    horas_hoje, horas_semana, horas_mes = agregar_horas(con)
+    horas_hoje, min_hoje, horas_semana, min_semana, horas_mes, min_mes = agregar_horas(con)
     meta_semana, meta_mes = extrair_metas(con)
     
     col5, col6, col7 = st.columns(3, vertical_alignment="bottom")
     with col5:
-        st.metric(label="Horas feitas hoje x Meta semanal", value=f"{horas_hoje}h/{meta_semana}h")
+        st.metric(label="Horas feitas hoje x Meta semanal", value=f"{horas_hoje}h{min_hoje}min / {meta_semana}h")
     with col6:
-        st.metric(label="Horas feitas na semana x Meta mensal", value=f"{horas_semana}h/{meta_mes}h") 
+        st.metric(label="Horas feitas na semana x Meta mensal", value=f"{horas_semana}h{min_semana}min/{meta_mes}h") 
     with col7:
-        st.metric(label="Horas feitas no mês", value=f"{horas_mes}h") 
+        st.metric(label="Horas feitas no mês", value=f"{horas_mes}h{min_mes}min") 
     st.divider() 
 
     # Notas
