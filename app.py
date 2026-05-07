@@ -8,7 +8,7 @@ from metodos.horas_e_metas import agregar_horas, extrair_metas
 
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
-
+st.title("🖊️Stude")
 con = iniciar_conexao()
 try:
     con.rollback() # Limpa qualquer transação falha residual
@@ -26,6 +26,7 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
     
     with col1: #START
+        st.caption("Iniciar Temporizador")
         start = st.button("Start", use_container_width=True) 
         if start:
             with con.cursor() as cur:
@@ -34,6 +35,7 @@ with tab1:
                 con.commit()
             st.toast("▶️ Tempo rodando!")
     with col2: # SELEÇÃO DE MATÉRIA
+        st.caption("Selecione sua matéria")
         tag_selecionada = st.selectbox(
             "Escolha de tag", 
             options=list(tradutorTags.keys()),
@@ -114,7 +116,7 @@ with tab1:
 # 2. ABA 2: CONFIGURAÇÕES
 # ==========================================
 with tab2:
-    st.markdown("#### Configure suas matérias e Visualize")
+    st.markdown("#### Configure suas matérias e visualize-as")
     
     with st.form("configuracoes_form", clear_on_submit=True):
         col_input, col_botao = st.columns([3, 1])
