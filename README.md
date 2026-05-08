@@ -10,6 +10,11 @@ Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas 
 
 ---
 
+# Showcase
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e4c948ec-7eb4-4d0a-8b85-01c071b803a0" />
+---
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d00c45f3-61bf-4587-9ef8-4a74243ff35e" />
+
 ## 💻 Setup Local (Para Desenvolvimento)
 
 ### Pré-requisitos
@@ -52,7 +57,3 @@ user = "postgres.sua_credencial"
 password = "suasenha"
 dbname = "postgres"
 ```
-
-# Showcase
-<img width="1920" height="966" alt="image" src="https://github.com/user-attachments/assets/4bf48f3f-36fe-4c3e-9bc0-fdcdb1b614d2" />
-<img width="1919" height="965" alt="image" src="https://github.com/user-attachments/assets/f36af13f-2e71-4fd1-9ae5-48ec805ed8a6" />
