@@ -45,9 +45,15 @@ with tab1:
         )
         
     with col3: # PAUSA
-        minutos_pausa = st.number_input("", min_value=0, step=1)
-    
+        st.caption("Tempo Ocioso")
+        minutos_pausa = st.number_input(
+        "Ocioso", 
+        min_value=0, 
+        step=1,
+        label_visibility="collapsed"
+        )
     with col4: # STOP
+        st.caption("Parar Temporizador")
         stop = st.button("Stop", use_container_width=True)
         if stop:
             if tag_selecionada is None:
@@ -79,18 +85,77 @@ with tab1:
                         st.error(f"Erro ao salvar sessão de estudo: {e}")
     st.divider()
     
-    # Área de horas estudadas X metas
+# ==========================================
+# 1.1 Métricas
+# ==========================================
     h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes = agregar_horas(con)
 
     meta_semana, meta_mes = extrair_metas(con)
     
-    col5, col6, col7 = st.columns(3, vertical_alignment="bottom")
-    with col5:
-        st.metric(label="Horas feitas hoje x Meta semanal", value=f"{h_hoje}h{m_hoje}min / {meta_semana}h")
-    with col6:
-        st.metric(label="Horas feitas na semana x Meta mensal", value=f"{h_semana}h{m_semana}min / {meta_mes}h") 
-    with col7:
-        st.metric(label="Horas feitas no mês", value=f"{h_mes}h{m_mes}min") 
+# Criamos apenas as 3 colunas principais
+    horas_feitas_semana, horas_feitas_hoje, horas_feitas_mes = st.columns(3, vertical_alignment="center")
+    
+    # --- TORRE DA ESQUERDA ---
+    with horas_feitas_semana:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas na semana</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_semana}h{m_semana}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
+        # O bloquinho invisível para dar o espaço entre as duas métricas
+        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+        
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Semanal</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_semana}h</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
+    # --- TORRE DO CENTRO ---
+    with horas_feitas_hoje:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
+                <p style="font-size: 50px; color: #FF9800; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
+    # --- TORRE DA DIREITA ---
+    with horas_feitas_mes:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas no mês</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_mes}h{m_mes}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
+        # O bloquinho invisível para manter tudo alinhado com o lado esquerdo
+        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+        
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Mensal</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_mes}h</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )    
     st.divider() 
 
     # Notas

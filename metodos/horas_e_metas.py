@@ -11,7 +11,7 @@ def agregar_horas(con):
                 COALESCE(SUM(minutos), 0), 
                 COALESCE(SUM(pausas_min), 0) 
             FROM log_estudo 
-            WHERE data = CURRENT_DATE
+            WHERE data = (NOW() AT TIME ZONE 'America/Sao_Paulo')::date
         """)
         minutos, pausas = cur.fetchone()
         total_hoje = minutos - pausas
@@ -24,7 +24,7 @@ def agregar_horas(con):
                 COALESCE(SUM(minutos), 0), 
                 COALESCE(SUM(pausas_min), 0) 
             FROM log_estudo 
-            WHERE data >= date_trunc('week', CURRENT_DATE)
+            WHERE data >= date_trunc('week', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date)
         """)
         minutos, pausas = cur.fetchone()
         total_semana = minutos - pausas
@@ -37,7 +37,7 @@ def agregar_horas(con):
                 COALESCE(SUM(minutos), 0), 
                 COALESCE(SUM(pausas_min), 0) 
             FROM log_estudo 
-            WHERE date_trunc('month', data) = date_trunc('month', CURRENT_DATE)
+            WHERE date_trunc('month', data) = date_trunc('month', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date)
         """)
         minutos, pausas = cur.fetchone()
         total_mes = minutos - pausas
