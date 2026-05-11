@@ -28,11 +28,11 @@ git clone https://github.com/dev-DanielNascimento/Stude.git
 Escolha um banco de dados PostgreSQL de sua preferência (ex: Supabase), crie credenciais IPv4 e insira no arquivo .env. Atenção: Neste arquivo local, não use espaços ou aspas. Exemplo:
 
 ```bash
-POSTGRES_USER=postgres.sua_credencial
-POSTGRES_PASSWORD=suasenha
-POSTGRES_DB=postgres
 host=aws-1-regiao.pooler.supabase.com
+user=postgres.sua_credencial
+password=suasenha
 port=5432
+dbname=postgres
 ```
 Para iniciar o aplicativo e o banco de dados local, basta executar o arquivo Start_App.bat (via duplo clique ou pelo terminal):
 # No PowerShell:
@@ -48,12 +48,9 @@ Acesse a página de deploy do Streamlit (https://share.streamlit.io/deploy) e co
 
 Escolha o banco de dados de produção. Na tela de deploy do Streamlit, vá em Advanced Settings > Secrets e insira as credenciais utilizando o formato TOML (com aspas e espaços). Exemplo:
 ```bash
-POSTGRES_USER = "postgres.sua_credencial"
-POSTGRES_PASSWORD = "suasenha"
-POSTGRES_DB = "postgres"
 host = "aws-1-regiao.pooler.supabase.com"
-port = "5432"
 user = "postgres.sua_credencial"
 password = "suasenha"
+port = "5432"
 dbname = "postgres"
 ```
