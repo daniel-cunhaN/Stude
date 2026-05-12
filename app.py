@@ -22,18 +22,24 @@ tab1, tab2 = st.tabs(["Ciclos de Estudo", "Configurações"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
+
+if "mostrar_notificacao" not in st.session_state:
+    st.session_state.mostrar_notificacao = False
+
 with tab1:
     col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
-    
     with col1: #START
         st.caption("Iniciar Temporizador")
         start = st.button("Start", use_container_width=True) 
         if start:
+            # Notificação permanente enquanto tempo rodando
+            st.session_state.mostrar_notificacao = True
+            #Injeção dos dados
             with con.cursor() as cur:
                 cur.execute("DELETE FROM sessao") # Primeiro deleta sessão anterior
                 cur.execute("INSERT INTO sessao (id, hora_inicial) VALUES (1, NOW())") # Insere o timestamp atual
                 con.commit()
-            st.toast("▶️ Tempo rodando!")
+            
     with col2: # SELEÇÃO DE MATÉRIA
         st.caption("Selecione sua matéria")
         tag_selecionada = st.selectbox(
@@ -42,8 +48,7 @@ with tab1:
             label_visibility="collapsed",
             index=None,
             placeholder="Matéria"
-        )
-        
+        )      
     with col3: # PAUSA
         st.caption("Tempo Ocioso")
         minutos_pausa = st.number_input(
@@ -59,6 +64,8 @@ with tab1:
             if tag_selecionada is None:
                 st.error("⚠️ Escolha uma matéria antes de parar o tempo!")
             else:
+                # Some com a notificação
+                st.session_state.mostrar_notificacao = False
                 with con.cursor() as cur:
                     try:
                         # 1. Atualiza hora final
@@ -83,6 +90,8 @@ with tab1:
                     except Exception as e:
                         con.rollback()
                         st.error(f"Erro ao salvar sessão de estudo: {e}")
+    if st.session_state.mostrar_notificacao:
+        st.info("**Temporizador Rodando!**", icon="⏱️")
     st.divider()
     
 # ==========================================
