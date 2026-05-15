@@ -33,6 +33,9 @@ user=postgres.sua_credencial
 password=suasenha
 port=5432
 dbname=postgres
+METABASE_SITE_URL=http://localhost:3000
+METABASE_SECRET_KEY=chavesecreta123
+DASHBOARD_ID=1337
 ```
 Para iniciar o aplicativo e o banco de dados local, basta executar o arquivo Start_App.bat (via duplo clique ou pelo terminal):
 # No PowerShell:
@@ -53,4 +56,7 @@ user = "postgres.sua_credencial"
 password = "suasenha"
 port = "5432"
 dbname = "postgres"
+METABASE_SITE_URL = "http://localhost:3000"
+METABASE_SECRET_KEY = "chavesecreta123"
+DASHBOARD_ID = "1337"
 ```

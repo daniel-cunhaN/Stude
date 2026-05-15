@@ -3,6 +3,8 @@ import psycopg2
 from datetime import datetime
 import time
 import pandas as pd
+import jwt
+import os
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
 
@@ -17,8 +19,7 @@ except:
 criar_tabelas(con)
 tradutorTags = obter_tags(con)
 
-tab1, tab2 = st.tabs(["Ciclos de Estudo", "Configurações"])
-
+tab1, tab2, tab3 = st.tabs(["Ciclos de Estudo", "Configurações", "Dashboard"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
@@ -364,3 +365,34 @@ with tab2:
         st.info("Nenhum registro encontrado ainda.")
         
         st.divider()
+
+# ==========================================
+# 3. ABA 3: Dashboard
+# ==========================================
+
+with tab3:
+    st.header("📊 Dashboard")
+    
+    METABASE_SITE_URL = os.getenv("METABASE_SITE_URL")
+    METABASE_SECRET_KEY = os.getenv("METABASE_SECRET_KEY")
+    DASHBOARD_ID = os.getenv("METABASE_DASHBOARD_ID")
+
+    if not all([METABASE_SITE_URL, METABASE_SECRET_KEY, DASHBOARD_ID]):
+        st.warning("⚠️ Os arquivos de configuração do metabase estão faltando")
+        st.info("""
+            **Como configurar:**
+            1. No Metabase: Configurações > Administração > Incorporação.
+            2. Ative 'Incorporar o Metabase em outros aplicativos'.
+            3. Acesse o painel que deseja incorporar, clique no ícone de compartilhamento > 'Incorporar este painel em um aplicativo'.
+            4. Copie a 'Secret Key' e o 'ID do Painel'.
+        """)
+    else:
+        payload = {
+          "resource": {"dashboard": int(DASHBOARD_ID)},
+          "params": {},
+          "exp": round(time.time()) + (60 * 10) # 10 minute expiration
+        }
+        token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
+        iframe_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true"
+        
+        st.components.v1.iframe(iframe_url, height=800, scrolling=True)

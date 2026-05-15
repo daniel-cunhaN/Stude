@@ -11,4 +11,4 @@ echo ==========================================
 start /min cmd /c "timeout /t 4 /nobreak >nul & start http://localhost:8501"
 
 :: Esse comando liga o aplicativo
-wsl bash -c "cd /mnt/c/Dev/Stude/docker && docker compose up"
+wsl bash -c "cd /mnt/c/Dev/Stude && docker compose up"

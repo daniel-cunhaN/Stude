@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:15
+    container_name: stude_db
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+  python_app:
+    build:
+      dockerfile: dockerfile
+      context: .
+    container_name: python_app
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/pastadocker
+    volumes: #Volume para manter app no disco para não ter que buildar toda vez que mudar o código
+      - .:/pastadocker
+      #executa streamlit ao buildar container e adiciona parâmetro de monitoramento de atualização
+      # de código
+    command: sh -c "streamlit run app.py --server.fileWatcherType poll"
+  
+  metabase:
+    image: metabase/metabase:latest
+    container_name: stude_bi
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${dbname}
+      MB_DB_PORT: ${port}
+      MB_DB_USER: ${user}
+      MB_DB_PASS: ${password}
+      MB_DB_HOST: db
+    restart: always
