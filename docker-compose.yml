@@ -22,21 +22,3 @@ services:
       #executa streamlit ao buildar container e adiciona parâmetro de monitoramento de atualização
       # de código
     command: sh -c "streamlit run app.py --server.fileWatcherType poll"
-  
-  metabase:
-    image: metabase/metabase:latest
-    container_name: stude_bi
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    env_file:
-      - .env
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: ${dbname}
-      MB_DB_PORT: ${port}
-      MB_DB_USER: ${user}
-      MB_DB_PASS: ${password}
-      MB_DB_HOST: db
-    restart: always

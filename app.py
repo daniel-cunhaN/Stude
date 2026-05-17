@@ -372,27 +372,5 @@ with tab2:
 
 with tab3:
     st.header("📊 Dashboard")
-    
-    METABASE_SITE_URL = os.getenv("METABASE_SITE_URL")
-    METABASE_SECRET_KEY = os.getenv("METABASE_SECRET_KEY")
-    DASHBOARD_ID = os.getenv("METABASE_DASHBOARD_ID")
-
-    if not all([METABASE_SITE_URL, METABASE_SECRET_KEY, DASHBOARD_ID]):
-        st.warning("⚠️ Os arquivos de configuração do metabase estão faltando")
-        st.info("""
-            **Como configurar:**
-            1. No Metabase: Configurações > Administração > Incorporação.
-            2. Ative 'Incorporar o Metabase em outros aplicativos'.
-            3. Acesse o painel que deseja incorporar, clique no ícone de compartilhamento > 'Incorporar este painel em um aplicativo'.
-            4. Copie a 'Secret Key' e o 'ID do Painel'.
-        """)
-    else:
-        payload = {
-          "resource": {"dashboard": int(DASHBOARD_ID)},
-          "params": {},
-          "exp": round(time.time()) + (60 * 10) # 10 minute expiration
-        }
-        token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
-        iframe_url = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true"
-        
-        st.components.v1.iframe(iframe_url, height=800, scrolling=True)
+    iframe_url=os.getenv("url_dashboard")
+    st.components.v1.iframe(iframe_url, height=800, scrolling=True)
