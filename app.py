@@ -3,6 +3,8 @@ import psycopg2
 from datetime import datetime
 import time
 import pandas as pd
+import jwt
+import os
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
 
@@ -17,8 +19,7 @@ except:
 criar_tabelas(con)
 tradutorTags = obter_tags(con)
 
-tab1, tab2 = st.tabs(["Ciclos de Estudo", "Configurações"])
-
+tab1, tab2, tab3 = st.tabs(["Ciclos de Estudo", "Configurações", "Dashboard"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
@@ -364,3 +365,12 @@ with tab2:
         st.info("Nenhum registro encontrado ainda.")
         
         st.divider()
+
+# ==========================================
+# 3. ABA 3: Dashboard
+# ==========================================
+
+with tab3:
+    st.header("📊 Dashboard")
+    iframe_url=os.getenv("url_dashboard")
+    st.components.v1.iframe(iframe_url, height=800, scrolling=True)
