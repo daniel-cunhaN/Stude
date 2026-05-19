@@ -7,13 +7,12 @@ Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas 
 * **PostgreSQL / Supabase** (Banco de Dados)
 * **Docker & WSL** (Ambiente de desenvolvimento local)
 * **Psycopg2, Pandas** (Manejo de Dados)
+* **Google Datastudio (Looker)** (Business Intelligence)
 
 ---
 
 # Showcase
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e4c948ec-7eb4-4d0a-8b85-01c071b803a0" />
----
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d00c45f3-61bf-4587-9ef8-4a74243ff35e" />
+<img width="1348" height="589" alt="Animação" src="https://github.com/user-attachments/assets/62165c2b-944d-4d46-9353-47ffdef9adbf" />
 
 ## 💻 Setup Local (Para Desenvolvimento)
 
@@ -25,7 +24,7 @@ Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas 
 ```bash
 git clone https://github.com/dev-DanielNascimento/Stude.git
 ```
-Escolha um banco de dados PostgreSQL de sua preferência (ex: Supabase), crie credenciais IPv4 e insira no arquivo .env. Atenção: Neste arquivo local, não use espaços ou aspas. Exemplo:
+2. Escolha um banco de dados PostgreSQL de sua preferência (ex: Supabase), crie credenciais IPv4 e insira no arquivo .env. Atenção: Neste arquivo local, não use espaços ou aspas. Exemplo:
 
 ```bash
 host=aws-1-regiao.pooler.supabase.com
@@ -33,11 +32,12 @@ user=postgres.sua_credencial
 password=suasenha
 port=5432
 dbname=postgres
-METABASE_SITE_URL=http://localhost:3000
-METABASE_SECRET_KEY=chavesecreta123
-DASHBOARD_ID=1337
+url_dashboard=seulinkEmbedGoogleLooker
 ```
-Para iniciar o aplicativo e o banco de dados local, basta executar o arquivo Start_App.bat (via duplo clique ou pelo terminal):
+3. Faça a cópia do template do dashboard e adicione seu banco de dados: [Template](https://datastudio.google.com/reporting/3e2c4311-1c4a-412b-b7e4-67104684ddd7)
+4. No google data studio, vá em compartilhar e crie seu link embed e mude no .env:
+```"url_dashboard=seulinkEmbedGoogleLooker"```
+5. Para iniciar o aplicativo e o banco de dados local, basta executar o arquivo Start_App.bat (via duplo clique ou pelo terminal):
 # No PowerShell:
 .\Start_App.bat
 
@@ -47,16 +47,19 @@ Start_App.bat
 ## ☁️ Setup na Nuvem (Deploy)
 Para hospedar o aplicativo gratuitamente utilizando o Streamlit Community Cloud:
 
-Acesse a página de deploy do Streamlit (https://share.streamlit.io/deploy) e conecte com este repositório, escolhendo obrigatoriamente a branch webapp.
-
-Escolha o banco de dados de produção. Na tela de deploy do Streamlit, vá em Advanced Settings > Secrets e insira as credenciais utilizando o formato TOML (com aspas e espaços). Exemplo:
+1. Clone o repositório
+2. Acesse a página de deploy do Streamlit (https://share.streamlit.io/deploy) e conecte com seu repositório **na nuvem do github** escolhendo sua respectiva branch
+3. Escolha o banco de dados de produção. Na tela de deploy do Streamlit, vá em Advanced Settings > Secrets e insira as credenciais utilizando o formato TOML (com aspas e espaços). Exemplo:
 ```bash
-host = "aws-1-regiao.pooler.supabase.com"
-user = "postgres.sua_credencial"
-password = "suasenha"
-port = "5432"
-dbname = "postgres"
-METABASE_SITE_URL = "http://localhost:3000"
-METABASE_SECRET_KEY = "chavesecreta123"
-DASHBOARD_ID = "1337"
+host=aws-1-regiao.pooler.supabase.com
+user=postgres.sua_credencial
+password=suasenha
+port=5432
+dbname=postgres
+url_dashboard=seulinkEmbedGoogleLooker
 ```
+4. Com a url do seu dashboard (vide instruções na sessão "setup local") Substitua a variável no arquivo ".env":
+```
+url_dashboard=seulinkEmbedGoogleLooker
+```
+5. Acesse seu aplicativo por meio do site do streamlit
