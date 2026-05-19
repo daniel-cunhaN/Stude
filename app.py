@@ -3,7 +3,6 @@ import psycopg2
 from datetime import datetime
 import time
 import pandas as pd
-import jwt
 import os
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
