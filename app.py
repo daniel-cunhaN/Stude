@@ -190,71 +190,89 @@ with tab1:
 # 2. ABA 2: CONFIGURAÇÕES
 # ==========================================
 with tab2:
-    st.markdown("#### Configure suas matérias e visualize-as")
-    
-    with st.form("configuracoes_form", clear_on_submit=True):
-        col_input, col_botao = st.columns([3, 1])
+    st.markdown("### Configurações")
+    st.markdown("Gerencie suas matérias e defina suas metas de estudo.")
+    st.write("") # Espaçamento para respirar o layout
 
-        # ==========================================
-        # 2.1 Criação de matéria
-        # ==========================================
-
-
-        with col_input:
-            nova_materia = st.text_input(
-                "Digite o nome da matéria", 
-                placeholder="Crie sua matéria aqui",
-                label_visibility="collapsed" 
-            )
-
-        with col_botao:
-            submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True)
-
-        # ==========================================
-        # 2.2 Exclusão de matéria
-        # ==========================================
-
-
-        col_input2, col_botao2 = st.columns([3, 1])
-
-        with col_input2:
-            tag_excluir = st.selectbox(
-                "Excluir matéria", 
-                options=list(tradutorTags.keys()), 
-                label_visibility="collapsed", 
-                placeholder="Selecione a matéria para exclusão"
-            )
+    # ==========================================
+    # CARTÃO 1: GERENCIAMENTO DE MATÉRIAS
+    # ==========================================
+    with st.container(border=True):
+        st.markdown("#### 📚 Matérias")
         
-        with col_botao2:
-            submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
-        
-        st.divider()
-        
+        # Formulário independente para ADICIONAR matéria
+        with st.form("form_add_materia", clear_on_submit=True, border=False):
+            col_input, col_botao = st.columns([3, 1], vertical_alignment="bottom")
+            
+            with col_input:
+                nova_materia = st.text_input(
+                    "Adicionar Matéria", 
+                    placeholder="Digite o nome da nova matéria...",
+                    label_visibility="collapsed" 
+                )
+            with col_botao:
+                submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True)
+
+        # Formulário independente para EXCLUIR matéria
+        with st.form("form_del_materia", clear_on_submit=False, border=False):
+            col_input2, col_botao2 = st.columns([3, 1], vertical_alignment="bottom")
+            
+            with col_input2:
+                tag_excluir = st.selectbox(
+                    "Excluir Matéria", 
+                    options=list(tradutorTags.keys()), 
+                    placeholder="Selecione a matéria para exclusão...",
+                    label_visibility="collapsed"
+                )
+            with col_botao2:
+                submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
         # ==========================================
-        # 2.3 Criação de Meta
+        # 2.6 Visualização de Tags
         # ==========================================
+        st.markdown("###### 🏷️Tags registradas:")
+        queryTags = """
+        SELECT tag FROM tags
+        """
+        visualizarTags = pd.read_sql(queryTags, con)
+        if not visualizarTags.empty:
+            visualizarTags.fillna('', inplace=True) 
+            st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum registro encontrado ainda.")    
 
-        # CRIAÇÃO META SEMANAL
 
-        meta_semanal_input, meta_semanal_salvar = st.columns([3, 1], vertical_alignment="bottom")
+    # ==========================================
+    # CARTÃO 2: METAS DE ESTUDO
+    # ==========================================
+    with st.container(border=True):
+        st.markdown("#### 🎯 Metas de Estudo")
+        
+        # Formulário independente para METAS
+        with st.form("form_metas", clear_on_submit=True, border=False):
+            
+            # Meta Semanal
+            meta_semanal_input, meta_semanal_salvar = st.columns([3, 1], vertical_alignment="bottom")
+            with meta_semanal_input:
+                nova_meta_semanal = st.text_input(
+                    "Meta Semanal", 
+                    placeholder="Digite a meta semanal em horas (ex: 15)",
+                    label_visibility="collapsed"
+                )
+            with meta_semanal_salvar:
+                submit_meta_semanal = st.form_submit_button("Salvar Semanal", use_container_width=True)
 
-        with meta_semanal_input:
-            nova_meta_semanal = st.text_input("", placeholder="Digite quantas hora será sua meta semanal")
+            st.write("") # Pequeno espaço entre os inputs de meta
 
-        with meta_semanal_salvar:
-            submit_meta_semanal = st.form_submit_button("Salvar Meta Semanal", use_container_width=True)
-
-        # CRIAÇÃO META MENSAL
-
-        meta_mensal_input, meta_mensal_salvar = st.columns([3, 1], vertical_alignment="bottom")
-
-        with meta_mensal_input:
-            nova_meta_mensal = st.text_input("", placeholder="Digite quantas hora será sua meta mensal")
-
-        with meta_mensal_salvar:
-            submit_meta_mensal = st.form_submit_button("Salvar Meta Mensal", use_container_width=True)
-      
-
+            # Meta Mensal
+            meta_mensal_input, meta_mensal_salvar = st.columns([3, 1], vertical_alignment="bottom")
+            with meta_mensal_input:
+                nova_meta_mensal = st.text_input(
+                    "Meta Mensal", 
+                    placeholder="Digite a meta mensal em horas (ex: 60)",
+                    label_visibility="collapsed"
+                )
+            with meta_mensal_salvar:
+                submit_meta_mensal = st.form_submit_button("Salvar Mensal", use_container_width=True)
             
     # =================================================
     # 2.4 Condicionais de Criação e Exclusão de Matéria
@@ -271,12 +289,12 @@ with tab2:
                     """, (nova_materia.capitalize(),))
                 
                 con.commit()
-                st.success(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
+                st.toast(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
                 time.sleep(1)
                 st.rerun()
             except Exception as e:
                 con.rollback()
-                st.error(f"Erro ao salvar matéria: {e}")
+                st.toast(f"Erro ao salvar matéria: {e}")
             
     if submit_excluirMateria:
         if tag_excluir:
@@ -290,10 +308,10 @@ with tab2:
                 st.rerun()
             except psycopg2.errors.ForeignKeyViolation:
                 con.rollback()
-                st.error(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
+                st.toast(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
             except Exception as e:
                 con.rollback()
-                st.error(f"Erro ao excluir matéria: {e}")
+                st.toas(f"Erro ao excluir matéria: {e}")
 
     # ==================================================
     # 2.5 Condicionais de Criação e Atualização de Metas
@@ -348,22 +366,6 @@ with tab2:
             except Exception as e:
                 con.rollback()
                 st.error(f"Erro ao salvar a meta mensal: {e}")
-
-                    
-# ==========================================
-# 2.6 Visualização de Tags
-# ==========================================
-    queryTags = """
-    SELECT tag FROM tags
-    """
-    visualizarTags = pd.read_sql(queryTags, con)
-    if not visualizarTags.empty:
-        visualizarTags.fillna('', inplace=True) 
-        st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum registro encontrado ainda.")
-        
-        st.divider()
 
 # ==========================================
 # 3. ABA 3: Dashboard

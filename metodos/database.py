@@ -11,7 +11,7 @@ def iniciar_conexao():
         port=os.getenv("port"),
         password=os.getenv("password"),
         dbname=os.getenv("dbname"),
-        sslmode="require",
+        sslmode="prefer",
         connect_timeout=5
     )
 
