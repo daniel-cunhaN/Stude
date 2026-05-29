@@ -37,7 +37,7 @@ with tab1:
             #Injeção dos dados
             with con.cursor() as cur:
                 cur.execute("DELETE FROM sessao") # Primeiro deleta sessão anterior
-                cur.execute("INSERT INTO sessao (id, hora_inicial) VALUES (1, NOW())") # Insere o timestamp atual
+                cur.execute("INSERT INTO sessao (id, hora_inicial) VALUES (1, NOW() AT TIME ZONE 'America/Sao_Paulo')") # Insere o timestamp atual
                 con.commit()
             
     with col2: # SELEÇÃO DE MATÉRIA
@@ -69,7 +69,7 @@ with tab1:
                 with con.cursor() as cur:
                     try:
                         # 1. Atualiza hora final
-                        cur.execute("UPDATE sessao SET hora_final = NOW() WHERE id = 1")
+                        cur.execute("UPDATE sessao SET hora_final = NOW() AT TIME ZONE 'America/Sao_Paulo' WHERE id = 1")
                         
                         # 2. Calcula minutos estudados
                         cur.execute("SELECT ROUND(EXTRACT(EPOCH FROM (hora_final - hora_inicial)) / 60) FROM sessao WHERE id = 1")
@@ -80,7 +80,7 @@ with tab1:
                             # 3. Salva no log de estudo
                             cur.execute("""
                                 INSERT INTO log_estudo (data, minutos, pausas_min, tag_id)
-                                VALUES (CURRENT_DATE, %s, %s, %s)
+                                VALUES ((NOW() AT TIME ZONE 'America/Sao_Paulo')::date, %s, %s, %s)
                             """, (minutos_estudados, minutos_pausa, tag_escolhida_id))
                         
                             con.commit()
