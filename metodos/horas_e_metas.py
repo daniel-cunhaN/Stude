@@ -24,7 +24,7 @@ def agregar_horas(con):
                 COALESCE(SUM(minutos), 0), 
                 COALESCE(SUM(pausas_min), 0) 
             FROM log_estudo 
-            WHERE data >= date_trunc('week', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date)
+            WHERE data >= (date_trunc('week', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date + INTERVAL '1 day') - INTERVAL '1 day')::date
         """)
         minutos, pausas = cur.fetchone()
         total_semana = minutos - pausas
