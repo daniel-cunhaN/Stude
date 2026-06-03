@@ -1,8 +1,6 @@
 import psycopg2
 from metodos.database import iniciar_conexao
 
-con = iniciar_conexao()
-
 def agregar_horas(con):
     with con.cursor() as cur:
         # Horas feitas hoje

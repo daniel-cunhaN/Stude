@@ -15,8 +15,24 @@ try:
     con.rollback() # Limpa qualquer transação falha residual
 except:
     pass
-criar_tabelas(con)
-tradutorTags = obter_tags(con)
+
+def carregar_dados(conexao):
+    st.session_state.tradutorTags = obter_tags(conexao)
+    st.session_state.horas = agregar_horas(conexao)
+    st.session_state.metas = extrair_metas(conexao)
+    with conexao.cursor() as cur:
+        cur.execute("SELECT texto FROM notas WHERE id = 1;")
+        resultado = cur.fetchone()
+        st.session_state.nota_antiga = resultado[0] if resultado else ""
+
+if "tabelas_criadas" not in st.session_state:
+    criar_tabelas(con)
+    st.session_state.tabelas_criadas = True
+
+if "tradutorTags" not in st.session_state:
+    carregar_dados(con)
+
+tradutorTags = st.session_state.tradutorTags
 
 tab1, tab2, tab3 = st.tabs(["Ciclos de Estudo", "Configurações", "Dashboard"])
 # ==========================================
@@ -62,7 +78,7 @@ with tab1:
         stop = st.button("Stop", use_container_width=True)
         if stop:
             if tag_selecionada is None:
-                st.error("⚠️ Escolha uma matéria antes de parar o tempo!")
+                st.toast("⚠️ Escolha uma matéria antes de parar o tempo!")
             else:
                 # Some com a notificação
                 st.session_state.mostrar_notificacao = False
@@ -84,6 +100,7 @@ with tab1:
                             """, (minutos_estudados, minutos_pausa, tag_escolhida_id))
                         
                             con.commit()
+                            carregar_dados(con)
                             st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudados} minutos.")
                             time.sleep(1)
                             st.rerun()
@@ -97,9 +114,9 @@ with tab1:
 # ==========================================
 # 1.1 Métricas
 # ==========================================
-    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes = agregar_horas(con)
+    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes = st.session_state.horas
 
-    meta_semana, meta_mes = extrair_metas(con)
+    meta_semana, meta_mes = st.session_state.metas
     
 # Criamos apenas as 3 colunas principais
     horas_feitas_semana, horas_feitas_hoje, horas_feitas_mes = st.columns(3, vertical_alignment="center")
@@ -168,10 +185,7 @@ with tab1:
     st.divider() 
 
     # Notas
-    with con.cursor() as cur:
-        cur.execute("SELECT texto FROM notas WHERE id = 1;")
-        resultado = cur.fetchone()
-        nota_antiga = resultado[0] if resultado else ""
+    nota_antiga = st.session_state.nota_antiga
 
     nota_nova = st.text_area(
         "Espaço para escrever:", 
@@ -184,6 +198,7 @@ with tab1:
         with con.cursor() as cur:
             cur.execute("UPDATE notas SET texto = %s WHERE id = 1;", (nota_nova,))
         con.commit()
+        st.session_state.nota_antiga = nota_nova
         st.toast("✅ Nota salva!")
 
 # ==========================================
@@ -230,12 +245,8 @@ with tab2:
         # 2.6 Visualização de Tags
         # ==========================================
         st.markdown("###### 🏷️Tags registradas:")
-        queryTags = """
-        SELECT tag FROM tags
-        """
-        visualizarTags = pd.read_sql(queryTags, con)
-        if not visualizarTags.empty:
-            visualizarTags.fillna('', inplace=True) 
+        if tradutorTags:
+            visualizarTags = pd.DataFrame(list(tradutorTags.keys()), columns=["tag"])
             st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
         else:
             st.info("Nenhum registro encontrado ainda.")    
@@ -289,6 +300,7 @@ with tab2:
                     """, (nova_materia.capitalize(),))
                 
                 con.commit()
+                carregar_dados(con)
                 st.toast(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
                 time.sleep(1)
                 st.rerun()
@@ -303,6 +315,7 @@ with tab2:
                 with con.cursor() as cur:
                     cur.execute("DELETE FROM tags WHERE id = %s;", (id_excluir,))
                 con.commit()
+                carregar_dados(con)
                 st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
                 time.sleep(1)
                 st.rerun()
@@ -311,7 +324,7 @@ with tab2:
                 st.toast(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
             except Exception as e:
                 con.rollback()
-                st.toas(f"Erro ao excluir matéria: {e}")
+                st.toast(f"Erro ao excluir matéria: {e}")
 
     # ==================================================
     # 2.5 Condicionais de Criação e Atualização de Metas
@@ -333,6 +346,7 @@ with tab2:
                         cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', %s)", (horas,))
                 
                 con.commit()
+                carregar_dados(con)
                 st.toast(f"✅ Meta semanal ('{horas}h') salva com sucesso!")
                 time.sleep(1)
                 st.rerun()
@@ -358,6 +372,7 @@ with tab2:
                         cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', %s)", (horas,))
                 
                 con.commit()
+                carregar_dados(con)
                 st.toast(f"✅ Meta mensal ('{horas}h') salva com sucesso!")
                 time.sleep(1)
                 st.rerun()
