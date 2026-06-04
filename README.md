@@ -12,7 +12,8 @@ Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas 
 ---
 
 # Showcase
-<img width="1348" height="589" alt="Animação" src="https://github.com/user-attachments/assets/62165c2b-944d-4d46-9353-47ffdef9adbf" />
+<img width="1899" height="1022" alt="Stude" src="https://github.com/user-attachments/assets/e819ea72-1cbf-433d-afc9-a8c9c1e32592" />
+
 
 ## 💻 Setup Local (Para Desenvolvimento)
 
@@ -47,7 +48,7 @@ Start_App.bat
 ## ☁️ Setup na Nuvem (Deploy)
 Para hospedar o aplicativo gratuitamente utilizando o Streamlit Community Cloud:
 
-1. Clone o repositório
+1. Clone o repositório na branch "webapp"
 2. Acesse a página de deploy do Streamlit (https://share.streamlit.io/deploy) e conecte com seu repositório **na nuvem do github** escolhendo sua respectiva branch
 3. Escolha o banco de dados de produção. Na tela de deploy do Streamlit, vá em Advanced Settings > Secrets e insira as credenciais utilizando o formato TOML (com aspas e espaços). Exemplo:
 ```bash
