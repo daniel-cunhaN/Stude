@@ -1,26 +1,29 @@
-# 📚 Stude
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/91c18a54-93f1-4d62-b3e1-e4a2633cb4b8" alt="Ícone Stude" height=300px width=300px/>
 
-Bem-vindo ao **Stude**! Um aplicativo web voltado para o gerenciamento de metas e acompanhamento de horas de estudo. 
+  <h1 align="center">Stude</h1>
+  <h4 align="center">Apicativo open-source de estudos, de estudante para estudantes</h4>
+</div>
 
-## 🚀 Tecnologias Utilizadas
-* **Python** **Streamlit** (Frontend / Web App)
-* **PostgreSQL / Supabase** (Banco de Dados)
-* **Docker & WSL** (Ambiente de desenvolvimento local)
-* **Psycopg2, Pandas** (Manejo de Dados)
-* **Google Datastudio (Looker)** (Business Intelligence)
+<!-- IDEIAS PARA ADICIONAR FUTURAMENTE
+<div align="center">
+  <a href="https://github.com/LizardByte/Sunshine"><img src="https://img.shields.io/github/stars/lizardbyte/sunshine.svg?logo=github&style=for-the-badge" alt="GitHub stars"></a>
+  <a href="https://github.com/LizardByte/Sunshine/releases/latest"><img src="https://img.shields.io/github/downloads/lizardbyte/sunshine/total.svg?style=for-the-badge&logo=github" alt="GitHub Releases"></a>
+-->
 
----
+## ℹ️ Sobre
 
-# Showcase
-<img width="1899" height="1022" alt="Stude" src="https://github.com/user-attachments/assets/e819ea72-1cbf-433d-afc9-a8c9c1e32592" />
-
-
+  Stude é um aplicativo web self-hosted para gerenciamento de sessões e metas de estudo. Com um temporizador integrado, você pode registrar suas sessões em tempo real, categorizá-las por matéria e
+  acompanhar seu progresso diário, semanal e mensal. Conta com um bloco de notas integrado permitindo anotar ideias e lembretes sem   
+  sair do aplicativo. Defina metas semanais e mensais para manter a constância, e visualize seus dados em um dashboard analítico. O Stude roda com
+  Streamlit e PostgreSQL, podendo ser hospedado localmente via Docker ou na nuvem gratuitamente pelo Streamlit Community Cloud
+  
 ## 💻 Setup Local (Para Desenvolvimento)
 
-### Pré-requisitos
-* **Passo 0:** Certifique-se de ter o **Docker Desktop** aberto e o **WSL** (Windows Subsystem for Linux) instalado no seu computador.
+#### Pré-requisitos
+**Passo 0:** Certifique-se de ter o **Docker Desktop** aberto e o **WSL** (Windows Subsystem for Linux) instalado no seu computador.
 
-### Instalação
+#### Instalação
 1. Faça o clone do repositório:
 ```bash
 git clone https://github.com/dev-DanielNascimento/Stude.git
@@ -39,13 +42,17 @@ url_dashboard=seulinkEmbedGoogleLooker
 4. No google data studio, vá em compartilhar e crie seu link embed e mude no .env:
 ```"url_dashboard=seulinkEmbedGoogleLooker"```
 5. Para iniciar o aplicativo e o banco de dados local, basta executar o arquivo Start_App.bat (via duplo clique ou pelo terminal):
-# No PowerShell:
+
+##### No PowerShell:
+```bash
 .\Start_App.bat
-
-# No CMD:
+```
+##### No CMD:
+```bash
 Start_App.bat
+```
 
-## ☁️ Setup na Nuvem (Deploy)
+### ☁️ Setup na Nuvem (Deploy)
 Para hospedar o aplicativo gratuitamente utilizando o Streamlit Community Cloud:
 
 1. Clone o repositório na branch "webapp"
