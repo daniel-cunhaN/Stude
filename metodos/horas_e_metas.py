@@ -42,8 +42,22 @@ def agregar_horas(con):
         horas_mes = int(total_mes / 60)
         min_restantes_mes = int(total_mes % 60)
 
-        # Retorna todos os 6 valores
-    return horas_hoje, min_restantes_hoje, horas_semana, min_restantes_semana, horas_mes, min_restantes_mes
+        # Horas feitas na semana anterior
+        cur.execute("""
+            SELECT 
+                COALESCE(SUM(minutos), 0), 
+                COALESCE(SUM(pausas_min), 0) 
+            FROM log_estudo 
+            WHERE data >= (date_trunc('week', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date + INTERVAL '1 day') - INTERVAL '8 days')::date
+              AND data < (date_trunc('week', (NOW() AT TIME ZONE 'America/Sao_Paulo')::date + INTERVAL '1 day') - INTERVAL '1 day')::date
+        """)
+        minutos, pausas = cur.fetchone()
+        total_semana_anterior = minutos - pausas
+        horas_semana_anterior = int(total_semana_anterior / 60)
+        min_restantes_semana_anterior = int(total_semana_anterior % 60)
+
+        # Retorna todos os 8 valores
+    return horas_hoje, min_restantes_hoje, horas_semana, min_restantes_semana, horas_mes, min_restantes_mes, horas_semana_anterior, min_restantes_semana_anterior
 
 def extrair_metas(con):
     with con.cursor() as cur:

@@ -1,0 +1,27 @@
+/* ============================
+   Estilos customizados - Stude
+   ============================ */
+
+/* Botões primários verdes (Start, Salvar Matéria, Salvar Semanal, Salvar Mensal) */
+button[kind="primary"],
+button[kind="primaryFormSubmit"] {
+    background-color: #00C853 !important;
+    border-color: #00C853 !important;
+    color: white !important;
+}
+button[kind="primary"]:hover,
+button[kind="primaryFormSubmit"]:hover {
+    background-color: #00A844 !important;
+    border-color: #00A844 !important;
+}
+
+/* Botões vermelhos (Stop, Excluir Matéria) - ativados via marcador .red-button-marker */
+.stElementContainer:has(.red-button-marker) + .stElementContainer button {
+    background-color: #FF1744 !important;
+    border-color: #FF1744 !important;
+    color: white !important;
+}
+.stElementContainer:has(.red-button-marker) + .stElementContainer button:hover {
+    background-color: #D50000 !important;
+    border-color: #D50000 !important;
+}

@@ -7,9 +7,14 @@ import os
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
 
+#TODO Criar painel de "troféus" 
 
 st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
 st.title("🖊️Stude")
+
+# CSS customizado (arquivo externo)
+with open("styles.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 con = iniciar_conexao()
 try:
     con.rollback() # Limpa qualquer transação falha residual
@@ -46,7 +51,7 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
     with col1: #START
         st.caption("Iniciar Temporizador")
-        start = st.button("Start", use_container_width=True) 
+        start = st.button("Start", use_container_width=True, type="primary") 
         if start:
             # Notificação permanente enquanto tempo rodando
             st.session_state.mostrar_notificacao = True
@@ -74,7 +79,7 @@ with tab1:
         label_visibility="collapsed"
         )
     with col4: # STOP
-        st.caption("Parar Temporizador")
+        st.markdown('<span class="red-button-marker"></span><p style="font-size: 0.875rem; color: rgba(250,250,250,0.6); margin-bottom: 0;">Parar Temporizador</p>', unsafe_allow_html=True)
         stop = st.button("Stop", use_container_width=True)
         if stop:
             if tag_selecionada is None:
@@ -114,51 +119,38 @@ with tab1:
 # ==========================================
 # 1.1 Métricas
 # ==========================================
-    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes = st.session_state.horas
+    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a = st.session_state.horas
 
     meta_semana, meta_mes = st.session_state.metas
     
-# Criamos apenas as 3 colunas principais
-    horas_feitas_semana, horas_feitas_hoje, horas_feitas_mes = st.columns(3, vertical_alignment="center")
+# Linha superior: Semana Anterior | Semana | Mês
+    horas_feitas_semana_anterior, horas_feitas_semana, horas_feitas_mes = st.columns(3, vertical_alignment="center")
     
-    # --- TORRE DA ESQUERDA ---
+    # --- Semana Anterior ---
+    with horas_feitas_semana_anterior:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas na semana anterior</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_semana_a}h{m_semana_a}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
+    # --- Semana ---
     with horas_feitas_semana:
         st.markdown(
             f"""
             <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas na semana</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_semana}h{m_semana}min</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        
-        # O bloquinho invisível para dar o espaço entre as duas métricas
-        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-        
-        st.markdown(
-            f"""
-            <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Semanal</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_semana}h</p>
+                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas na semana</p>
+                <p style="font-size: 50px; color: #00BFA5; font-weight: bold; margin-top: 0px;">{h_semana}h{m_semana}min</p>
             </div>
             """, 
             unsafe_allow_html=True
         )
 
-    # --- TORRE DO CENTRO ---
-    with horas_feitas_hoje:
-        st.markdown(
-            f"""
-            <div style="text-align: center;">
-                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
-                <p style="font-size: 50px; color: #FF9800; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        
-    # --- TORRE DA DIREITA ---
+    # --- Mês ---
     with horas_feitas_mes:
         st.markdown(
             f"""
@@ -169,10 +161,33 @@ with tab1:
             """, 
             unsafe_allow_html=True
         )
-        
-        # O bloquinho invisível para manter tudo alinhado com o lado esquerdo
-        st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-        
+
+    # Espaço entre as linhas de métricas
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+    # Linha inferior: Meta Semanal | Horas feitas hoje | Meta Mensal
+    col_meta_semana, col_hoje, col_meta_mes = st.columns(3, vertical_alignment="center")
+    with col_meta_semana:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Semanal</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_semana}h</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    with col_hoje:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
+                <p style="font-size: 50px; color: #FF9800; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    with col_meta_mes:
         st.markdown(
             f"""
             <div style="text-align: center;">
@@ -205,10 +220,6 @@ with tab1:
 # 2. ABA 2: CONFIGURAÇÕES
 # ==========================================
 with tab2:
-    st.markdown("### Configurações")
-    st.markdown("Gerencie suas matérias e defina suas metas de estudo.")
-    st.write("") # Espaçamento para respirar o layout
-
     # ==========================================
     # CARTÃO 1: GERENCIAMENTO DE MATÉRIAS
     # ==========================================
@@ -226,7 +237,7 @@ with tab2:
                     label_visibility="collapsed" 
                 )
             with col_botao:
-                submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True)
+                submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True, type="primary")
 
         # Formulário independente para EXCLUIR matéria
         with st.form("form_del_materia", clear_on_submit=False, border=False):
@@ -240,11 +251,12 @@ with tab2:
                     label_visibility="collapsed"
                 )
             with col_botao2:
+                st.markdown('<span class="red-button-marker"></span>', unsafe_allow_html=True)
                 submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
         # ==========================================
         # 2.6 Visualização de Tags
         # ==========================================
-        st.markdown("###### 🏷️Tags registradas:")
+        st.markdown("##### 🏷️Tags registradas:")
         if tradutorTags:
             visualizarTags = pd.DataFrame(list(tradutorTags.keys()), columns=["tag"])
             st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
@@ -270,7 +282,7 @@ with tab2:
                     label_visibility="collapsed"
                 )
             with meta_semanal_salvar:
-                submit_meta_semanal = st.form_submit_button("Salvar Semanal", use_container_width=True)
+                submit_meta_semanal = st.form_submit_button("Salvar Semanal", use_container_width=True, type="primary")
 
             st.write("") # Pequeno espaço entre os inputs de meta
 
@@ -283,7 +295,7 @@ with tab2:
                     label_visibility="collapsed"
                 )
             with meta_mensal_salvar:
-                submit_meta_mensal = st.form_submit_button("Salvar Mensal", use_container_width=True)
+                submit_meta_mensal = st.form_submit_button("Salvar Mensal", use_container_width=True, type="primary")
             
     # =================================================
     # 2.4 Condicionais de Criação e Exclusão de Matéria
