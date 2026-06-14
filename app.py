@@ -280,28 +280,18 @@ with tab2:
         with st.form("form_metas", clear_on_submit=True, border=False):
             
             # Meta Semanal
-            meta_semanal_input, meta_semanal_salvar = st.columns([3, 1], vertical_alignment="bottom")
-            with meta_semanal_input:
-                nova_meta_semanal = st.text_input(
-                    "Meta Semanal", 
-                    placeholder="Digite a meta semanal em horas (ex: 15)",
-                    label_visibility="collapsed"
-                )
-            with meta_semanal_salvar:
-                submit_meta_semanal = st.form_submit_button("Salvar Semanal", use_container_width=True, type="primary")
-
-            st.write("") # Pequeno espaço entre os inputs de meta
+            nova_meta_semanal = st.text_input(
+                "Meta Semanal", 
+                placeholder="Digite a meta semanal em horas (ex: 15)"
+            )
 
             # Meta Mensal
-            meta_mensal_input, meta_mensal_salvar = st.columns([3, 1], vertical_alignment="bottom")
-            with meta_mensal_input:
-                nova_meta_mensal = st.text_input(
-                    "Meta Mensal", 
-                    placeholder="Digite a meta mensal em horas (ex: 60)",
-                    label_visibility="collapsed"
-                )
-            with meta_mensal_salvar:
-                submit_meta_mensal = st.form_submit_button("Salvar Mensal", use_container_width=True, type="primary")
+            nova_meta_mensal = st.text_input(
+                "Meta Mensal (horas)", 
+                placeholder="Digite a meta mensal em horas (ex: 60)"
+            )
+
+            submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
             
     # =================================================
     # 2.4 Condicionais de Criação e Exclusão de Matéria
@@ -348,57 +338,41 @@ with tab2:
     # 2.5 Condicionais de Criação e Atualização de Metas
     # ==================================================
 
-    # METAS SEMANAIS
+    if submit_metas:
+        tem_semanal = nova_meta_semanal.strip() != ""
+        tem_mensal = nova_meta_mensal.strip() != ""
 
-    if submit_meta_semanal:
-        if nova_meta_semanal.strip() == "":
-            st.warning("⚠️ O número de horas da meta não pode ser nulo!")
+        if not tem_semanal and not tem_mensal:
+            st.warning("⚠️ Preencha pelo menos uma meta!")
         else:
             try:
-                horas = int(nova_meta_semanal)
                 with con.cursor() as cur:
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
-                    if cur.fetchone(): # Se a query existe, então...
-                        cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'semanal'", (horas,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', %s)", (horas,))
-                
+                    if tem_semanal:
+                        horas_sem = int(nova_meta_semanal)
+                        cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
+                        if cur.fetchone():
+                            cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'semanal'", (horas_sem,))
+                        else:
+                            cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', %s)", (horas_sem,))
+
+                    if tem_mensal:
+                        horas_men = int(nova_meta_mensal)
+                        cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
+                        if cur.fetchone():
+                            cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'mensal'", (horas_men,))
+                        else:
+                            cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', %s)", (horas_men,))
+
                 con.commit()
                 carregar_dados(con)
-                st.toast(f"✅ Meta semanal ('{horas}h') salva com sucesso!")
+                st.toast("✅ Metas salvas com sucesso!")
                 time.sleep(1)
                 st.rerun()
             except ValueError:
-                st.error("⚠️ Por favor, insira um número válido (apenas números).")
+                st.error("⚠️ Por favor, insira apenas números válidos.")
             except Exception as e:
                 con.rollback()
-                st.error(f"Erro ao salvar a meta semanal: {e}")
-
-    # METAS MENSAIS
-
-    if submit_meta_mensal:
-        if nova_meta_mensal.strip() == "":
-            st.warning("⚠️ O número de horas da meta não pode ser nulo!")
-        else:
-            try:
-                horas = int(nova_meta_mensal)
-                with con.cursor() as cur:
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
-                    if cur.fetchone(): # Se a query existe, então...
-                        cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'mensal'", (horas,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', %s)", (horas,))
-                
-                con.commit()
-                carregar_dados(con)
-                st.toast(f"✅ Meta mensal ('{horas}h') salva com sucesso!")
-                time.sleep(1)
-                st.rerun()
-            except ValueError:
-                st.error("⚠️ Por favor, insira um número válido (apenas números).")
-            except Exception as e:
-                con.rollback()
-                st.error(f"Erro ao salvar a meta mensal: {e}")
+                st.error(f"Erro ao salvar as metas: {e}")
 
 # ==========================================
 # 3. ABA 3: Dashboard
@@ -406,5 +380,17 @@ with tab2:
 
 with tab3:
     st.header("📊 Dashboard")
-    iframe_url=os.getenv("url_dashboard")
-    st.components.v1.iframe(iframe_url, height=800, scrolling=True)
+    iframe_url = os.getenv("url_dashboard")
+
+    st.components.v1.html(
+        f"""
+        <iframe
+            src="{iframe_url}"
+            width="100%"
+            height="750"
+            frameborder="0"
+            style="border: none; border-radius: 8px;"
+        ></iframe>
+        """,
+        height=720
+    )
