@@ -6,14 +6,20 @@ import pandas as pd
 import os
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
+from assets.utils import img_to_base64
 
 #TODO Criar painel de "troféus" 
 
-st.set_page_config(page_title="Stude", page_icon="📚", layout="centered")
-st.title("🖊️Stude")
+ICON_PATH = "assets/icon.png"
+
+st.set_page_config(page_title="Stude", page_icon=ICON_PATH, layout="centered")
+
+# Título com ícone customizado
+icon_base64 = img_to_base64(ICON_PATH)
+
 
 # CSS customizado (arquivo externo)
-with open("styles.css") as f:
+with open("assets/styles.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 con = iniciar_conexao()
 try:
