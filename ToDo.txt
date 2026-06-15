@@ -1,0 +1,2 @@
+Criar dashboard global (para todos)
+Criar painel de "troféus" 

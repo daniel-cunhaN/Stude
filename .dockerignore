@@ -1,9 +1,0 @@
-.env
-.gitignore
-docker-compose.yml
-dockerfile
-README.md
-Stude.bat
-limpeza_dados/
-__pycache__/
-.git

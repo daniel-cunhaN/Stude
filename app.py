@@ -1,5 +1,5 @@
 import streamlit as st
-import psycopg2
+import sqlite3
 from datetime import datetime
 import time
 import pandas as pd
@@ -8,16 +8,18 @@ from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
 from assets.utils import img_to_base64
 
-#TODO Criar painel de "troféus" 
-
 ICON_PATH = "assets/icon.png"
 
 st.set_page_config(page_title="Stude", page_icon=ICON_PATH, layout="centered")
 
 # Título com ícone customizado
 icon_base64 = img_to_base64(ICON_PATH)
-
-
+st.markdown(f"""
+<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; margin-top: -20px;">
+    <img src="data:image/png;base64,{icon_base64}" width="45" style="border-radius: 8px;">
+    <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">Stude</h1>
+</div>
+""", unsafe_allow_html=True)
 # CSS customizado (arquivo externo)
 with open("assets/styles.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -31,10 +33,10 @@ def carregar_dados(conexao):
     st.session_state.tradutorTags = obter_tags(conexao)
     st.session_state.horas = agregar_horas(conexao)
     st.session_state.metas = extrair_metas(conexao)
-    with conexao.cursor() as cur:
-        cur.execute("SELECT texto FROM notas WHERE id = 1;")
-        resultado = cur.fetchone()
-        st.session_state.nota_antiga = resultado[0] if resultado else ""
+    cur = conexao.cursor()
+    cur.execute("SELECT texto FROM notas WHERE id = 1;")
+    resultado = cur.fetchone()
+    st.session_state.nota_antiga = resultado[0] if resultado else ""
 
 if "tabelas_criadas" not in st.session_state:
     criar_tabelas(con)
@@ -62,10 +64,11 @@ with tab1:
             # Notificação permanente enquanto tempo rodando
             st.session_state.mostrar_notificacao = True
             #Injeção dos dados
-            with con.cursor() as cur:
-                cur.execute("DELETE FROM sessao") # Primeiro deleta sessão anterior
-                cur.execute("INSERT INTO sessao (id, hora_inicial) VALUES (1, NOW() AT TIME ZONE 'America/Sao_Paulo')") # Insere o timestamp atual
-                con.commit()
+            cur = con.cursor()
+            cur.execute("DELETE FROM sessao") # Primeiro deleta sessão anterior
+            agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            cur.execute("INSERT INTO sessao (id, hora_inicial) VALUES (1, ?)", (agora,)) # Insere o timestamp atual
+            con.commit()
             
     with col2: # SELEÇÃO DE MATÉRIA
         st.caption("Selecione sua matéria")
@@ -91,33 +94,30 @@ with tab1:
             if tag_selecionada is None:
                 st.toast("⚠️ Escolha uma matéria antes de parar o tempo!")
             else:
-                # Some com a notificação
                 st.session_state.mostrar_notificacao = False
-                with con.cursor() as cur:
-                    try:
-                        # 1. Atualiza hora final
-                        cur.execute("UPDATE sessao SET hora_final = NOW() AT TIME ZONE 'America/Sao_Paulo' WHERE id = 1")
-                        
-                        # 2. Calcula minutos estudados
-                        cur.execute("SELECT ROUND(EXTRACT(EPOCH FROM (hora_final - hora_inicial)) / 60) FROM sessao WHERE id = 1")
-                        resultado = cur.fetchone()
-                        if resultado:
-                            minutos_estudados = max(0, int(resultado[0]))
-                            tag_escolhida_id = tradutorTags[tag_selecionada]
-                            # 3. Salva no log de estudo
-                            cur.execute("""
-                                INSERT INTO log_estudo (data, minutos, pausas_min, tag_id)
-                                VALUES ((NOW() AT TIME ZONE 'America/Sao_Paulo')::date, %s, %s, %s)
-                            """, (minutos_estudados, minutos_pausa, tag_escolhida_id))
-                        
-                            con.commit()
-                            carregar_dados(con)
-                            st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudados} minutos.")
-                            time.sleep(1)
-                            st.rerun()
-                    except Exception as e:
-                        con.rollback()
-                        st.error(f"Erro ao salvar sessão de estudo: {e}")
+                try:
+                    cur = con.cursor()
+                    agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    cur.execute("UPDATE sessao SET hora_final = ? WHERE id = 1", (agora,))
+                    cur.execute("SELECT ROUND((julianday(hora_final) - julianday(hora_inicial)) * 24 * 60) FROM sessao WHERE id = 1")
+                    resultado = cur.fetchone()
+                    if resultado and resultado[0] is not None:
+                        minutos_estudados = max(0, int(resultado[0]))
+                        tag_escolhida_id = tradutorTags[tag_selecionada]
+                        data_hoje = datetime.now().strftime('%Y-%m-%d')
+                        cur.execute(
+                            "INSERT INTO log_estudo (data, minutos, pausas_min, tag_id) VALUES (?, ?, ?, ?)",
+                            (data_hoje, minutos_estudados, minutos_pausa, tag_escolhida_id)
+                        )
+                        con.commit()
+                        carregar_dados(con)
+                        st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudados} minutos.")
+                        time.sleep(1)
+                        st.rerun()
+                except Exception as e:
+                    con.rollback()
+                    st.error(f"Erro ao salvar sessão de estudo: {e}")
+
     if st.session_state.mostrar_notificacao:
         st.info("**Temporizador Rodando!**", icon="⏱️")
     st.divider()
@@ -216,8 +216,8 @@ with tab1:
     )
 
     if nota_nova != nota_antiga:
-        with con.cursor() as cur:
-            cur.execute("UPDATE notas SET texto = %s WHERE id = 1;", (nota_nova,))
+        cur = con.cursor()
+        cur.execute("UPDATE notas SET texto = ? WHERE id = 1;", (nota_nova,))
         con.commit()
         st.session_state.nota_antiga = nota_nova
         st.toast("✅ Nota salva!")
@@ -287,7 +287,7 @@ with tab2:
 
             # Meta Mensal
             nova_meta_mensal = st.text_input(
-                "Meta Mensal (horas)", 
+                "Meta Mensal", 
                 placeholder="Digite a meta mensal em horas (ex: 60)"
             )
 
@@ -301,11 +301,11 @@ with tab2:
             st.warning("⚠️ O nome da matéria não pode ser vazio!")
         else:
             try:
-                with con.cursor() as cur:
-                    cur.execute("""
-                        INSERT INTO tags (tag) 
-                        VALUES (%s);
-                    """, (nova_materia.capitalize(),))
+                cur = con.cursor()
+                cur.execute("""
+                    INSERT INTO tags (tag) 
+                    VALUES (?);
+                """, (nova_materia.capitalize(),))
                 
                 con.commit()
                 carregar_dados(con)
@@ -320,14 +320,14 @@ with tab2:
         if tag_excluir:
             try:
                 id_excluir = tradutorTags[tag_excluir]
-                with con.cursor() as cur:
-                    cur.execute("DELETE FROM tags WHERE id = %s;", (id_excluir,))
+                cur = con.cursor()
+                cur.execute("DELETE FROM tags WHERE id = ?;", (id_excluir,))
                 con.commit()
                 carregar_dados(con)
                 st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
                 time.sleep(1)
                 st.rerun()
-            except psycopg2.errors.ForeignKeyViolation:
+            except sqlite3.IntegrityError:
                 con.rollback()
                 st.toast(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
             except Exception as e:
@@ -346,22 +346,22 @@ with tab2:
             st.warning("⚠️ Preencha pelo menos uma meta!")
         else:
             try:
-                with con.cursor() as cur:
-                    if tem_semanal:
-                        horas_sem = int(nova_meta_semanal)
-                        cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
-                        if cur.fetchone():
-                            cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'semanal'", (horas_sem,))
-                        else:
-                            cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', %s)", (horas_sem,))
+                cur = con.cursor()
+                if tem_semanal:
+                    horas_sem = int(nova_meta_semanal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'semanal'", (horas_sem,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', ?)", (horas_sem,))
 
-                    if tem_mensal:
-                        horas_men = int(nova_meta_mensal)
-                        cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
-                        if cur.fetchone():
-                            cur.execute("UPDATE metas SET horas_alvo = %s WHERE tipo_meta = 'mensal'", (horas_men,))
-                        else:
-                            cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', %s)", (horas_men,))
+                if tem_mensal:
+                    horas_men = int(nova_meta_mensal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'mensal'", (horas_men,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', ?)", (horas_men,))
 
                 con.commit()
                 carregar_dados(con)
@@ -380,7 +380,13 @@ with tab2:
 
 with tab3:
     st.header("📊 Dashboard")
-    iframe_url = os.getenv("url_dashboard")
+    iframe_url = os.getenv("url_dashboard", "")
+    if os.path.exists(".env"):
+        with open(".env", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("url_dashboard="):
+                    iframe_url = line.strip().split("=", 1)[1]
+                    break
 
     st.components.v1.html(
         f"""
@@ -390,7 +396,8 @@ with tab3:
             height="750"
             frameborder="0"
             style="border: none; border-radius: 8px;"
+            allowfullscreen
         ></iframe>
         """,
-        height=720
+        height=750
     )

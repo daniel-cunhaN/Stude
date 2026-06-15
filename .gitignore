@@ -2,3 +2,10 @@
 __pycache__/
 docker-compose.yml
 dockerfile
+stude_local.db
+build/
+dist/
+*.spec
+*.exe
+*.sql
+importar_dados_sqlalchemy.py
