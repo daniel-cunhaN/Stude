@@ -6,6 +6,7 @@ stude_local.db
 build/
 dist/
 *.spec
-*.exe
+Stude.exe
 *.sql
 importar_dados_sqlalchemy.py
+ToDo.txt
