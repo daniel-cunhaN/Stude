@@ -1,9 +1,10 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import pandas as pd
 import os
+import altair as alt
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
 from assets.utils import img_to_base64
@@ -379,25 +380,140 @@ with tab2:
 # ==========================================
 
 with tab3:
-    st.header("📊 Dashboard")
-    iframe_url = os.getenv("url_dashboard", "")
-    if os.path.exists(".env"):
-        with open(".env", "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("url_dashboard="):
-                    iframe_url = line.strip().split("=", 1)[1]
-                    break
-
-    st.components.v1.html(
-        f"""
-        <iframe
-            src="{iframe_url}"
-            width="100%"
-            height="750"
-            frameborder="0"
-            style="border: none; border-radius: 8px;"
-            allowfullscreen
-        ></iframe>
-        """,
-        height=750
-    )
+    st.header("📊 Meu Dashboard")
+    
+    try:
+        # Consulta SQL para calcular os minutos líquidos (minutos - pausas)
+        query = """
+            SELECT l.data, (l.minutos - COALESCE(l.pausas_min, 0)) as minutos_liquidos, t.tag as materia 
+            FROM log_estudo l
+            LEFT JOIN tags t ON l.tag_id = t.id
+        """
+        df_logs = pd.read_sql(query, con)
+        
+        if not df_logs.empty:
+            df_logs['data_dt'] = pd.to_datetime(df_logs['data'])
+            
+            # --- LINHA 1: CARDS ---
+            # 1. Média de Horas por Dia feitas nessa semana
+            hoje = pd.Timestamp(datetime.now().date())
+            dias_desde_domingo = (hoje.dayofweek + 1) % 7
+            domingo_atual = hoje - pd.Timedelta(days=dias_desde_domingo)
+            
+            df_semana = df_logs[df_logs['data_dt'] >= domingo_atual]
+            dias_decorridos = dias_desde_domingo + 1
+            total_minutos_semana = df_semana['minutos_liquidos'].sum() if not df_semana.empty else 0
+            media_min_dia_semana = total_minutos_semana / dias_decorridos
+            media_horas_sem = int(media_min_dia_semana // 60)
+            media_min_sem = int(media_min_dia_semana % 60)
+            media_str = f"{media_horas_sem}h {media_min_sem}min"
+            
+            # 2. Total de horas estudadas (todos os tempos)
+            total_minutos_geral = df_logs['minutos_liquidos'].sum()
+            total_horas_geral = int(total_minutos_geral // 60)
+            total_min_geral = int(total_minutos_geral % 60)
+            total_geral_str = f"{total_horas_geral}h {total_min_geral}min"
+            
+            # 3. Recorde de Horas estudadas em um dia só
+            df_por_dia = df_logs.groupby(df_logs['data_dt'].dt.date)['minutos_liquidos'].sum()
+            recorde_minutos = df_por_dia.max() if not df_por_dia.empty else 0
+            recorde_horas = int(recorde_minutos // 60)
+            recorde_min = int(recorde_minutos % 60)
+            recorde_str = f"{recorde_horas}h {recorde_min}min"
+            
+            # Renderizar Linha 1
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                with st.container(border=True):
+                    st.metric("Média Diária (Nesta Semana)", media_str)
+            with col2:
+                with st.container(border=True):
+                    st.metric("Total Estudado", total_geral_str)
+            with col3:
+                with st.container(border=True):
+                    st.metric("Recorde (1 Dia)", recorde_str)
+                
+            st.divider()
+            
+            # --- CARD DE OFENSIVA (STREAK) ---
+            st.markdown("#### 🔥 Ofensiva Atual")
+            
+            # Pegar datas únicas onde houve estudo real
+            dias_unicos = pd.Series(df_logs[df_logs['minutos_liquidos'] > 0]['data_dt'].dt.date.unique()).sort_values(ascending=False)
+            ofensiva = 0
+            
+            if not dias_unicos.empty:
+                hoje_date = datetime.now().date()
+                ultimo_dia = dias_unicos.iloc[0]
+                
+                # Verifica se o último dia estudado foi hoje ou ontem
+                if (hoje_date - ultimo_dia).days <= 1:
+                    ofensiva = 1
+                    data_atual = ultimo_dia
+                    # Conta retroativamente os dias consecutivos
+                    for d in dias_unicos.iloc[1:]:
+                        if (data_atual - d).days == 1:
+                            ofensiva += 1
+                            data_atual = d
+                        else:
+                            break
+                            
+            if ofensiva > 0:
+                texto_ofensiva = f"<h2 style='text-align: center; color: #FF9800; margin-bottom: 0px;'>🔥 {ofensiva} dias seguidos!</h2>"
+                subtexto = "<p style='text-align: center; color: #b0bec5; margin-top: 0px;'>Continue assim para não quebrar a corrente!</p>"
+            else:
+                texto_ofensiva = f"<h2 style='text-align: center; color: #b0bec5; margin-bottom: 0px;'>💤 Nenhuma ofensiva ativa</h2>"
+                subtexto = "<p style='text-align: center; color: #b0bec5; margin-top: 0px;'>Estude hoje para iniciar sua corrente!</p>"
+                
+            with st.container(border=True):
+                st.markdown(texto_ofensiva, unsafe_allow_html=True)
+                st.markdown(subtexto, unsafe_allow_html=True)
+            
+            st.divider()
+            
+            # --- LINHA 2: PRODUTIVIDADE POR DIA ---
+            st.markdown("#### Produtividade Por Dia da Semana")
+            dias_traduzidos = {
+                'Monday': 'Segunda-feira', 'Tuesday': 'Terça-feira', 'Wednesday': 'Quarta-feira',
+                'Thursday': 'Quinta-feira', 'Friday': 'Sexta-feira', 'Saturday': 'Sábado', 'Sunday': 'Domingo'
+            }
+            df_logs['dia_semana'] = df_logs['data_dt'].dt.day_name().map(dias_traduzidos)
+            
+            # Agrupar por data exata e dia da semana, depois fazer a média
+            df_diario = df_logs.groupby([df_logs['data_dt'].dt.date, 'dia_semana'])['minutos_liquidos'].sum().reset_index()
+            df_produtividade = df_diario.groupby('dia_semana')['minutos_liquidos'].mean().reset_index()
+            df_produtividade['media_horas'] = df_produtividade['minutos_liquidos'] / 60
+            df_produtividade['Média'] = df_produtividade['minutos_liquidos'].apply(lambda x: f"{int(x//60)}h {int(x%60)}min")
+            
+            ordem_dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado']
+            
+            bar_chart = alt.Chart(df_produtividade).mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
+                x=alt.X('dia_semana:N', sort=ordem_dias, title="", axis=alt.Axis(labelAngle=0)),
+                y=alt.Y('media_horas:Q', title="Média de Horas"),
+                color=alt.Color('dia_semana:N', legend=None, scale=alt.Scale(scheme='tableau10')),
+                tooltip=[alt.Tooltip('dia_semana:N', title='Dia da Semana'), alt.Tooltip('Média:N', title='Média')]
+            ).properties(height=350)
+            
+            st.altair_chart(bar_chart, use_container_width=True)
+            
+            st.divider()
+            
+            # --- LINHA 3: GRÁFICO DE PIZZA (TÓPICOS) ---
+            st.markdown("#### Tópicos Mais Estudados")
+            df_materia = df_logs.groupby('materia')['minutos_liquidos'].sum().reset_index()
+            df_materia = df_materia.dropna(subset=['materia'])
+            df_materia['Tempo Total'] = df_materia['minutos_liquidos'].apply(lambda x: f"{int(x//60)}h {int(x%60)}min")
+            
+            pie_chart = alt.Chart(df_materia).mark_arc(innerRadius=60).encode(
+                theta=alt.Theta(field="minutos_liquidos", type="quantitative"),
+                color=alt.Color(field="materia", type="nominal", title="Matéria", scale=alt.Scale(scheme='set2')),
+                tooltip=[alt.Tooltip('materia:N', title='Matéria'), alt.Tooltip('Tempo Total:N', title='Tempo Estudado')]
+            ).properties(height=400)
+            
+            st.altair_chart(pie_chart, use_container_width=True)
+            
+        else:
+            st.info("Nenhum ciclo de estudo registrado ainda. Finalize um ciclo na aba 'Ciclos de Estudo' para ver seus gráficos!")
+            
+    except Exception as e:
+        st.error(f"Erro ao carregar o dashboard: {e}")
