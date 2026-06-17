@@ -19,4 +19,4 @@
   Streamlit e PostgreSQL, podendo ser hospedado localmente via Docker ou na nuvem gratuitamente pelo Streamlit Community Cloud
   
 ## 💻 Setup 
-[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.0.0/Setup.exe)
+[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.0.0/StudeSetup-2.0.0.exe)
