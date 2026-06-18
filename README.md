@@ -20,6 +20,13 @@
   * 📚 **Análise por Matéria:** Visualize a distribuição do seu tempo e entenda em quais disciplinas você tem focado mais através de gráficos intuitivos.
 
   Além do poderoso dashboard, o Stude conta com um temporizador integrado para registrar sessões em tempo real, categorização de estudos por matéria e um bloco de notas embutido para anotar ideias e lembretes sem sair do aplicativo. O projeto é desenvolvido em Python utilizando Streamlit e armazena os seus dados com total privacidade no seu próprio computador através de um banco de dados SQLite, sendo distribuído como um aplicativo executável fácil de instalar para Windows.
-  
+
+## 🔎 Preview
+<div style="width:100%; display:flex; justify-content:space-between;">
+  <img src="https://github.com/user-attachments/assets/c092aacf-4888-4a9b-864b-7c29be14df76" width="35%">
+    <img src="https://github.com/user-attachments/assets/216b14c7-9e25-4e53-856e-55ee3b51faa5" width="28%">
+    <img src="https://github.com/user-attachments/assets/b7e32da9-b4d3-43c6-a0c0-9c5fde289570" width="17.3%">
+</div>
+
 ## 💻 Setup 
 [Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.1.0/StudeSetup-2.1.0.exe)
