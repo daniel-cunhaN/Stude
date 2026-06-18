@@ -2,7 +2,7 @@
   <img src="https://github.com/user-attachments/assets/91c18a54-93f1-4d62-b3e1-e4a2633cb4b8" alt="Ícone Stude" height=300px width=300px/>
 
   <h1 align="center">Stude</h1>
-  <h4 align="center">Apicativo open-source de estudos, de estudante para estudantes</h4>
+  <h4 align="center">Aplicativo open-source de estudos, de estudante para estudantes</h4>
 </div>
 
 <!-- IDEIAS PARA ADICIONAR FUTURAMENTE
@@ -13,10 +13,13 @@
 
 ## ℹ️ Sobre
 
-  Stude é um aplicativo web self-hosted para gerenciamento de sessões e metas de estudo. Com um temporizador integrado, você pode registrar suas sessões em tempo real, categorizá-las por matéria e
-  acompanhar seu progresso diário, semanal e mensal. Conta com um bloco de notas integrado permitindo anotar ideias e lembretes sem   
-  sair do aplicativo. Defina metas semanais e mensais para manter a constância, e visualize seus dados em um dashboard analítico. O Stude roda com
-  Streamlit e PostgreSQL, podendo ser hospedado localmente via Docker ou na nuvem gratuitamente pelo Streamlit Community Cloud
+  O **Stude** é um aplicativo desktop focado no gerenciamento de sessões e metas de estudo, desenhado para transformar sua rotina acadêmica rodando de forma totalmente local na sua máquina. **O grande destaque do aplicativo é o seu Dashboard Analítico completo**, que traduz o seu esforço em métricas e insights valiosos:
+
+  * 📊 **Métricas Avançadas:** Acompanhe gráficos detalhados do seu progresso de estudos diário, semanal e mensal.
+  * 🎯 **Acompanhamento de Metas:** Monitore de perto a constância e o cumprimento de metas semanais e mensais.
+  * 📚 **Análise por Matéria:** Visualize a distribuição do seu tempo e entenda em quais disciplinas você tem focado mais através de gráficos intuitivos.
+
+  Além do poderoso dashboard, o Stude conta com um temporizador integrado para registrar sessões em tempo real, categorização de estudos por matéria e um bloco de notas embutido para anotar ideias e lembretes sem sair do aplicativo. O projeto é desenvolvido em Python utilizando Streamlit e armazena os seus dados com total privacidade no seu próprio computador através de um banco de dados SQLite, sendo distribuído como um aplicativo executável fácil de instalar para Windows.
   
 ## 💻 Setup 
 [Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.0.0/StudeSetup-2.0.0.exe)
