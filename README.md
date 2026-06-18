@@ -22,4 +22,4 @@
   Além do poderoso dashboard, o Stude conta com um temporizador integrado para registrar sessões em tempo real, categorização de estudos por matéria e um bloco de notas embutido para anotar ideias e lembretes sem sair do aplicativo. O projeto é desenvolvido em Python utilizando Streamlit e armazena os seus dados com total privacidade no seu próprio computador através de um banco de dados SQLite, sendo distribuído como um aplicativo executável fácil de instalar para Windows.
   
 ## 💻 Setup 
-[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.0.0/StudeSetup-2.0.0.exe)
+[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.1.0/StudeSetup-2.1.0.exe)
