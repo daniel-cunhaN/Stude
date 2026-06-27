@@ -60,7 +60,7 @@ with tab1:
     col1, col2, col3, col4 = st.columns(4, vertical_alignment="bottom")
     with col1: #START
         st.caption("Iniciar Temporizador")
-        start = st.button("Start", use_container_width=True, type="primary") 
+        start = st.button("Start", use_container_width=True, type="primary", disabled=st.session_state.mostrar_notificacao) 
         if start:
             # Notificação permanente enquanto tempo rodando
             st.session_state.mostrar_notificacao = True
@@ -90,7 +90,7 @@ with tab1:
         )
     with col4: # STOP
         st.markdown('<span class="red-button-marker"></span><p style="font-size: 0.875rem; color: rgba(250,250,250,0.6); margin-bottom: 0;">Parar Temporizador</p>', unsafe_allow_html=True)
-        stop = st.button("Stop", use_container_width=True)
+        stop = st.button("Stop", use_container_width=True, disabled=not st.session_state.mostrar_notificacao)
         if stop:
             if tag_selecionada is None:
                 st.toast("⚠️ Escolha uma matéria antes de parar o tempo!")
