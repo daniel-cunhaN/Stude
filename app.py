@@ -48,7 +48,7 @@ if "tradutorTags" not in st.session_state:
 
 tradutorTags = st.session_state.tradutorTags
 
-tab1, tab2, tab3 = st.tabs(["Ciclos de Estudo", "Configurações", "Dashboard"])
+tab1, tab2, tab3, tab4 = st.tabs(["Ciclos de Estudo", "Metas", "Dashboard", "Configurações"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
@@ -224,156 +224,10 @@ with tab1:
         st.toast("✅ Nota salva!")
 
 # ==========================================
-# 2. ABA 2: CONFIGURAÇÕES
+# ABA 2: Metas
 # ==========================================
 with tab2:
-    # ==========================================
-    # CARTÃO 1: GERENCIAMENTO DE MATÉRIAS
-    # ==========================================
-    with st.container(border=True):
-        st.markdown("#### 📚 Matérias")
-        
-        # Formulário independente para ADICIONAR matéria
-        with st.form("form_add_materia", clear_on_submit=True, border=False):
-            col_input, col_botao = st.columns([3, 1], vertical_alignment="bottom")
-            
-            with col_input:
-                nova_materia = st.text_input(
-                    "Adicionar Matéria", 
-                    placeholder="Digite o nome da nova matéria...",
-                    label_visibility="collapsed" 
-                )
-            with col_botao:
-                submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True, type="primary")
 
-        # Formulário independente para EXCLUIR matéria
-        with st.form("form_del_materia", clear_on_submit=False, border=False):
-            col_input2, col_botao2 = st.columns([3, 1], vertical_alignment="bottom")
-            
-            with col_input2:
-                tag_excluir = st.selectbox(
-                    "Excluir Matéria", 
-                    options=list(tradutorTags.keys()), 
-                    placeholder="Selecione a matéria para exclusão...",
-                    label_visibility="collapsed"
-                )
-            with col_botao2:
-                st.markdown('<span class="red-button-marker"></span>', unsafe_allow_html=True)
-                submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
-        # ==========================================
-        # 2.6 Visualização de Tags
-        # ==========================================
-        st.markdown("##### 🏷️Tags registradas:")
-        if tradutorTags:
-            visualizarTags = pd.DataFrame(list(tradutorTags.keys()), columns=["tag"])
-            st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nenhum registro encontrado ainda.")    
-
-
-    # ==========================================
-    # CARTÃO 2: METAS DE ESTUDO
-    # ==========================================
-    with st.container(border=True):
-        st.markdown("#### 🎯 Metas de Estudo")
-        
-        # Formulário independente para METAS
-        with st.form("form_metas", clear_on_submit=True, border=False):
-            
-            # Meta Semanal
-            nova_meta_semanal = st.text_input(
-                "Meta Semanal", 
-                placeholder="Digite a meta semanal em horas (ex: 15)"
-            )
-
-            # Meta Mensal
-            nova_meta_mensal = st.text_input(
-                "Meta Mensal", 
-                placeholder="Digite a meta mensal em horas (ex: 60)"
-            )
-
-            submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
-            
-    # =================================================
-    # 2.4 Condicionais de Criação e Exclusão de Matéria
-    # =================================================
-    if submit_materia:
-        if nova_materia.strip() == "":
-            st.warning("⚠️ O nome da matéria não pode ser vazio!")
-        else:
-            try:
-                cur = con.cursor()
-                cur.execute("""
-                    INSERT INTO tags (tag) 
-                    VALUES (?);
-                """, (nova_materia.capitalize(),))
-                
-                con.commit()
-                carregar_dados(con)
-                st.toast(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
-                time.sleep(1)
-                st.rerun()
-            except Exception as e:
-                con.rollback()
-                st.toast(f"Erro ao salvar matéria: {e}")
-            
-    if submit_excluirMateria:
-        if tag_excluir:
-            try:
-                id_excluir = tradutorTags[tag_excluir]
-                cur = con.cursor()
-                cur.execute("DELETE FROM tags WHERE id = ?;", (id_excluir,))
-                con.commit()
-                carregar_dados(con)
-                st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
-                time.sleep(1)
-                st.rerun()
-            except sqlite3.IntegrityError:
-                con.rollback()
-                st.toast(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
-            except Exception as e:
-                con.rollback()
-                st.toast(f"Erro ao excluir matéria: {e}")
-
-    # ==================================================
-    # 2.5 Condicionais de Criação e Atualização de Metas
-    # ==================================================
-
-    if submit_metas:
-        tem_semanal = nova_meta_semanal.strip() != ""
-        tem_mensal = nova_meta_mensal.strip() != ""
-
-        if not tem_semanal and not tem_mensal:
-            st.warning("⚠️ Preencha pelo menos uma meta!")
-        else:
-            try:
-                cur = con.cursor()
-                if tem_semanal:
-                    horas_sem = int(nova_meta_semanal)
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
-                    if cur.fetchone():
-                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'semanal'", (horas_sem,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', ?)", (horas_sem,))
-
-                if tem_mensal:
-                    horas_men = int(nova_meta_mensal)
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
-                    if cur.fetchone():
-                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'mensal'", (horas_men,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', ?)", (horas_men,))
-
-                con.commit()
-                carregar_dados(con)
-                st.toast("✅ Metas salvas com sucesso!")
-                time.sleep(1)
-                st.rerun()
-            except ValueError:
-                st.error("⚠️ Por favor, insira apenas números válidos.")
-            except Exception as e:
-                con.rollback()
-                st.error(f"Erro ao salvar as metas: {e}")
 
 # ==========================================
 # 3. ABA 3: Dashboard
@@ -517,3 +371,151 @@ with tab3:
             
     except Exception as e:
         st.error(f"Erro ao carregar o dashboard: {e}")
+
+# ==========================================
+# ABA 4: CONFIGURAÇÕES
+# ==========================================
+with tab4:
+    # --- GERENCIAMENTO DE MATÉRIAS --- 
+    with st.container(border=True):
+        st.markdown("#### 📚 Matérias")
+        
+        # Formulário independente para ADICIONAR matéria
+        with st.form("form_add_materia", clear_on_submit=True, border=False):
+            col_input, col_botao = st.columns([3, 1], vertical_alignment="bottom")
+            
+            with col_input:
+                nova_materia = st.text_input(
+                    "Adicionar Matéria", 
+                    placeholder="Digite o nome da nova matéria...",
+                    label_visibility="collapsed" 
+                )
+            with col_botao:
+                submit_materia = st.form_submit_button("Salvar Matéria", use_container_width=True, type="primary")
+
+        # Formulário independente para EXCLUIR matéria
+        with st.form("form_del_materia", clear_on_submit=False, border=False):
+            col_input2, col_botao2 = st.columns([3, 1], vertical_alignment="bottom")
+            
+            with col_input2:
+                tag_excluir = st.selectbox(
+                    "Excluir Matéria", 
+                    options=list(tradutorTags.keys()), 
+                    placeholder="Selecione a matéria para exclusão...",
+                    label_visibility="collapsed"
+                )
+            with col_botao2:
+                st.markdown('<span class="red-button-marker"></span>', unsafe_allow_html=True)
+                submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
+        # --- Visualização de Tags ---
+        st.markdown("##### 🏷️Tags registradas:")
+        if tradutorTags:
+            visualizarTags = pd.DataFrame(list(tradutorTags.keys()), columns=["tag"])
+            st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum registro encontrado ainda.")    
+
+
+    # ==========================================
+    # METAS DE ESTUDO
+    # ==========================================
+    with st.container(border=True):
+        st.markdown("#### 🎯 Metas de Estudo")
+        
+        # Formulário independente para METAS
+        with st.form("form_metas", clear_on_submit=True, border=False):
+            
+            # Meta Semanal
+            nova_meta_semanal = st.text_input(
+                "Meta Semanal", 
+                placeholder="Digite a meta semanal em horas (ex: 15)"
+            )
+
+            # Meta Mensal
+            nova_meta_mensal = st.text_input(
+                "Meta Mensal", 
+                placeholder="Digite a meta mensal em horas (ex: 60)"
+            )
+
+            submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
+            
+    # =================================================
+    # Condicionais de Criação e Exclusão de Matéria
+    # =================================================
+    if submit_materia:
+        if nova_materia.strip() == "":
+            st.warning("⚠️ O nome da matéria não pode ser vazio!")
+        else:
+            try:
+                cur = con.cursor()
+                cur.execute("""
+                    INSERT INTO tags (tag) 
+                    VALUES (?);
+                """, (nova_materia.capitalize(),))
+                
+                con.commit()
+                carregar_dados(con)
+                st.toast(f"✅ Matéria '{nova_materia.capitalize()}' criada com sucesso!")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                con.rollback()
+                st.toast(f"Erro ao salvar matéria: {e}")
+            
+    if submit_excluirMateria:
+        if tag_excluir:
+            try:
+                id_excluir = tradutorTags[tag_excluir]
+                cur = con.cursor()
+                cur.execute("DELETE FROM tags WHERE id = ?;", (id_excluir,))
+                con.commit()
+                carregar_dados(con)
+                st.toast(f"🗑️ Matéria '{tag_excluir}' excluída!")
+                time.sleep(1)
+                st.rerun()
+            except sqlite3.IntegrityError:
+                con.rollback()
+                st.toast(f"❌ Não é possível excluir '{tag_excluir}' pois existem registros de estudo vinculados a ela.")
+            except Exception as e:
+                con.rollback()
+                st.toast(f"Erro ao excluir matéria: {e}")
+
+    # ==================================================
+    # Condicionais de Criação e Atualização de Metas
+    # ==================================================
+
+    if submit_metas:
+        tem_semanal = nova_meta_semanal.strip() != ""
+        tem_mensal = nova_meta_mensal.strip() != ""
+
+        if not tem_semanal and not tem_mensal:
+            st.warning("⚠️ Preencha pelo menos uma meta!")
+        else:
+            try:
+                cur = con.cursor()
+                if tem_semanal:
+                    horas_sem = int(nova_meta_semanal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'semanal'", (horas_sem,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', ?)", (horas_sem,))
+
+                if tem_mensal:
+                    horas_men = int(nova_meta_mensal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'mensal'", (horas_men,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', ?)", (horas_men,))
+
+                con.commit()
+                carregar_dados(con)
+                st.toast("✅ Metas salvas com sucesso!")
+                time.sleep(1)
+                st.rerun()
+            except ValueError:
+                st.error("⚠️ Por favor, insira apenas números válidos.")
+            except Exception as e:
+                con.rollback()
+                st.error(f"Erro ao salvar as metas: {e}")
