@@ -1,9 +1,8 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 import time
 import pandas as pd
-import os
 import altair as alt
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
@@ -227,7 +226,66 @@ with tab1:
 # ABA 2: Metas
 # ==========================================
 with tab2:
+    st.header("Metas")
 
+    # --- METAS DE ESTUDO ---
+    with st.container(border=True):
+        st.markdown("#### 🎯 Metas de Estudo")
+        
+        # Formulário independente para METAS
+        with st.form("form_metas", clear_on_submit=True, border=False):
+            
+            # Meta Semanal
+            nova_meta_semanal = st.text_input(
+                "Meta Semanal", 
+                placeholder="Digite a meta semanal em horas (ex: 15)"
+            )
+
+            # Meta Mensal
+            nova_meta_mensal = st.text_input(
+                "Meta Mensal", 
+                placeholder="Digite a meta mensal em horas (ex: 60)"
+            )
+
+            submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
+
+    # --- Condicionais de Criação e Atualização de Metas ---
+    
+    if submit_metas:
+        tem_semanal = nova_meta_semanal.strip() != ""
+        tem_mensal = nova_meta_mensal.strip() != ""
+
+        if not tem_semanal and not tem_mensal:
+            st.warning("⚠️ Preencha pelo menos uma meta!")
+        else:
+            try:
+                cur = con.cursor()
+                if tem_semanal:
+                    horas_sem = int(nova_meta_semanal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'semanal'", (horas_sem,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', ?)", (horas_sem,))
+
+                if tem_mensal:
+                    horas_men = int(nova_meta_mensal)
+                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
+                    if cur.fetchone():
+                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'mensal'", (horas_men,))
+                    else:
+                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', ?)", (horas_men,))
+
+                con.commit()
+                carregar_dados(con)
+                st.toast("✅ Metas salvas com sucesso!")
+                time.sleep(1)
+                st.rerun()
+            except ValueError:
+                st.error("⚠️ Por favor, insira apenas números válidos.")
+            except Exception as e:
+                con.rollback()
+                st.error(f"Erro ao salvar as metas: {e}")
 
 # ==========================================
 # 3. ABA 3: Dashboard
@@ -414,30 +472,6 @@ with tab4:
             st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
         else:
             st.info("Nenhum registro encontrado ainda.")    
-
-
-    # ==========================================
-    # METAS DE ESTUDO
-    # ==========================================
-    with st.container(border=True):
-        st.markdown("#### 🎯 Metas de Estudo")
-        
-        # Formulário independente para METAS
-        with st.form("form_metas", clear_on_submit=True, border=False):
-            
-            # Meta Semanal
-            nova_meta_semanal = st.text_input(
-                "Meta Semanal", 
-                placeholder="Digite a meta semanal em horas (ex: 15)"
-            )
-
-            # Meta Mensal
-            nova_meta_mensal = st.text_input(
-                "Meta Mensal", 
-                placeholder="Digite a meta mensal em horas (ex: 60)"
-            )
-
-            submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
             
     # =================================================
     # Condicionais de Criação e Exclusão de Matéria
@@ -479,43 +513,3 @@ with tab4:
             except Exception as e:
                 con.rollback()
                 st.toast(f"Erro ao excluir matéria: {e}")
-
-    # ==================================================
-    # Condicionais de Criação e Atualização de Metas
-    # ==================================================
-
-    if submit_metas:
-        tem_semanal = nova_meta_semanal.strip() != ""
-        tem_mensal = nova_meta_mensal.strip() != ""
-
-        if not tem_semanal and not tem_mensal:
-            st.warning("⚠️ Preencha pelo menos uma meta!")
-        else:
-            try:
-                cur = con.cursor()
-                if tem_semanal:
-                    horas_sem = int(nova_meta_semanal)
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'semanal'")
-                    if cur.fetchone():
-                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'semanal'", (horas_sem,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('semanal', ?)", (horas_sem,))
-
-                if tem_mensal:
-                    horas_men = int(nova_meta_mensal)
-                    cur.execute("SELECT 1 FROM metas WHERE tipo_meta = 'mensal'")
-                    if cur.fetchone():
-                        cur.execute("UPDATE metas SET horas_alvo = ? WHERE tipo_meta = 'mensal'", (horas_men,))
-                    else:
-                        cur.execute("INSERT INTO metas (tipo_meta, horas_alvo) VALUES ('mensal', ?)", (horas_men,))
-
-                con.commit()
-                carregar_dados(con)
-                st.toast("✅ Metas salvas com sucesso!")
-                time.sleep(1)
-                st.rerun()
-            except ValueError:
-                st.error("⚠️ Por favor, insira apenas números válidos.")
-            except Exception as e:
-                con.rollback()
-                st.error(f"Erro ao salvar as metas: {e}")
