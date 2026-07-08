@@ -24,9 +24,7 @@ icon_base64 = img_to_base64(ICON_PATH)
 trofeus = obter_inventario(con)
 streak_dados = obter_streak_status(con)
 streak_atual = streak_dados["streak_atual"] if streak_dados else 0
-congelamentos_ativos = streak_dados["congelamentos_ativos"] if streak_dados else 0
-
-icone_streak = "🧊" if congelamentos_ativos > 0 else "🔥"
+meta_semana, meta_mes = extrair_metas(con)
 
 st.markdown(f"""
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-top: -20px;">
@@ -35,7 +33,8 @@ st.markdown(f"""
         <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">Stude</h1>
     </div>
     <div style="display: flex; gap: 15px; font-size: 1.2rem; font-weight: bold; background-color: #1e1e1e; padding: 8px 12px; border-radius: 8px;">
-        <span>{icone_streak} {streak_atual}</span>
+        <span>S{meta_semana}H | M{meta_mes}H</span>
+        <span>🔥 {streak_atual}</span>
         <span>🏆 {trofeus}</span>
     </div>
 </div>
@@ -64,7 +63,7 @@ if "tradutorTags" not in st.session_state:
 
 tradutorTags = st.session_state.tradutorTags
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Ciclos de Estudo", "Metas", "Dashboard", "Configurações", "Loja 🏆"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Ciclos de Estudo", "Metas", "Dashboard", "Loja", "Configurações"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
@@ -131,7 +130,7 @@ with tab1:
                         carregar_dados(con)
                         
                         # Verifica se bateu a meta para dar o trofeu
-                        h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a = st.session_state.horas
+                        h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a, h_mes_a, m_mes_a = st.session_state.horas
                         meta_semana, meta_mes = st.session_state.metas
                         verificar_e_premiar_metas(con, h_semana, h_mes, meta_semana, meta_mes)
 
@@ -149,20 +148,18 @@ with tab1:
 # ==========================================
 # 1.1 Métricas
 # ==========================================
-    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a = st.session_state.horas
-
-    meta_semana, meta_mes = st.session_state.metas
+    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a, h_mes_a, m_mes_a = st.session_state.horas
     
-# Linha superior: Semana Anterior | Semana | Mês
-    horas_feitas_semana_anterior, horas_feitas_semana, horas_feitas_mes = st.columns(3, vertical_alignment="center")
+# Linha de Métricas: Hoje | Semana | Mês
+    horas_feitas_semana, horas_feitas_hoje, horas_feitas_mes = st.columns(3, vertical_alignment="center")
     
-    # --- Semana Anterior ---
-    with horas_feitas_semana_anterior:
+    # --- Hoje ---
+    with horas_feitas_hoje:
         st.markdown(
             f"""
             <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas na semana anterior</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_semana_a}h{m_semana_a}min</p>
+                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
+                <p style="font-size: 50px; color: #eb3d34; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
             </div>
             """, 
             unsafe_allow_html=True
@@ -174,7 +171,7 @@ with tab1:
             f"""
             <div style="text-align: center;">
                 <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas na semana</p>
-                <p style="font-size: 50px; color: #00BFA5; font-weight: bold; margin-top: 0px;">{h_semana}h{m_semana}min</p>
+                <p style="font-size: 50px; color: white; font-weight: bold; margin-top: 0px;">{h_semana}h{m_semana}min</p>
             </div>
             """, 
             unsafe_allow_html=True
@@ -185,48 +182,13 @@ with tab1:
         st.markdown(
             f"""
             <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas no mês</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_mes}h{m_mes}min</p>
+                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas no mês</p>
+                <p style="font-size: 50px; color: white; font-weight: bold; margin-top: 0px;">{h_mes}h{m_mes}min</p>
             </div>
             """, 
             unsafe_allow_html=True
         )
 
-    # Espaço entre as linhas de métricas
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
-    # Linha inferior: Meta Semanal | Horas feitas hoje | Meta Mensal
-    col_meta_semana, col_hoje, col_meta_mes = st.columns(3, vertical_alignment="center")
-    with col_meta_semana:
-        st.markdown(
-            f"""
-            <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Semanal</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_semana}h</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-    with col_hoje:
-        st.markdown(
-            f"""
-            <div style="text-align: center;">
-                <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
-                <p style="font-size: 50px; color: #FF9800; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-    with col_meta_mes:
-        st.markdown(
-            f"""
-            <div style="text-align: center;">
-                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Meta Mensal</p>
-                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{meta_mes}h</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )    
     st.divider() 
 
     # Notas
@@ -250,10 +212,13 @@ with tab1:
 # ABA 2: Metas
 # ==========================================
 with tab2:
+    h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a, h_mes_a, m_mes_a = st.session_state.horas
+    meta_semana, meta_mes = st.session_state.metas
 
     # --- METAS DE ESTUDO ---
     with st.container(border=True):
-        st.markdown("#### 🎯 Metas de Estudo")
+        st.markdown("#### 🎯 Definir Metas")
+        st.markdown("<p style='font-size: 14px; color: #b0bec5; margin-top: -10px;'>Cumpra suas metas e ganhe troféus para gastar na loja!</p>", unsafe_allow_html=True)
         
         # Formulário independente para METAS
         with st.form("form_metas", clear_on_submit=True, border=False):
@@ -271,6 +236,33 @@ with tab2:
             )
 
             submit_metas = st.form_submit_button("Salvar Metas", use_container_width=True, type="primary")
+
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+
+    # --- MÉTRICAS DE METAS ---
+    col_semana_a, col_mes_a = st.columns(2, vertical_alignment="center")
+    
+    with col_semana_a:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas na semana anterior</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_semana_a}h{m_semana_a}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
+    with col_mes_a:
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 16px; color: #b0bec5; margin-bottom: -10px;">Horas feitas no mês anterior</p>
+                <p style="font-size: 35px; color: white; font-weight: bold; margin-top: 0px;">{h_mes_a}h{m_mes_a}min</p>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
 
     # --- Condicionais de Criação e Atualização de Metas ---
     
@@ -315,8 +307,6 @@ with tab2:
 # ==========================================
 
 with tab3:
-    st.header("📊 Meu Dashboard")
-    
     try:
         # Consulta SQL para calcular os minutos líquidos (minutos - pausas)
         query = """
@@ -369,7 +359,7 @@ with tab3:
                     st.metric("Recorde (1 Dia)", recorde_str)
                 
             st.divider()
-
+            
             # --- LINHA 2: PRODUTIVIDADE POR DIA ---
             st.markdown("#### Produtividade Por Dia da Semana")
             dias_traduzidos = {
@@ -418,9 +408,9 @@ with tab3:
         st.error(f"Erro ao carregar o dashboard: {e}")
 
 # ==========================================
-# ABA 4: CONFIGURAÇÕES
+# ABA 5: CONFIGURAÇÕES
 # ==========================================
-with tab4:
+with tab5:
     # --- GERENCIAMENTO DE MATÉRIAS --- 
     with st.container(border=True):
         st.markdown("#### 📚 Matérias")
@@ -460,9 +450,8 @@ with tab4:
         else:
             st.info("Nenhum registro encontrado ainda.")    
             
-    # =================================================
-    # Condicionais de Criação e Exclusão de Matéria
-    # =================================================
+    # --- Condicionais de Criação e Exclusão de Matéria ---
+ 
     if submit_materia:
         if nova_materia.strip() == "":
             st.warning("⚠️ O nome da matéria não pode ser vazio!")
@@ -502,9 +491,9 @@ with tab4:
                 st.toast(f"Erro ao excluir matéria: {e}")
 
 # ==========================================
-# ABA 5: LOJA / CONQUISTAS
+# ABA 4: LOJA / CONQUISTAS
 # ==========================================
-with tab5:
+with tab4:
     st.markdown("#### 🛒 Loja de Recompensas")
     st.write(f"Você tem **{obter_inventario(con)} troféus** disponíveis.")
     
@@ -521,4 +510,4 @@ with tab5:
                     time.sleep(2)
                     st.rerun()
                 else:
-                    st.error(msg)
+                    st.error(msg)

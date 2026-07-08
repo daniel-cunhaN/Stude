@@ -13,6 +13,13 @@ def agregar_horas(con):
     sabado_anterior = (hoje - timedelta(days=dias_desde_domingo + 1)).strftime('%Y-%m-%d')
     
     primeiro_dia_mes = hoje.replace(day=1).strftime('%Y-%m-%d')
+    
+    primeiro_dia_mes_atual = hoje.replace(day=1)
+    ultimo_dia_mes_anterior = primeiro_dia_mes_atual - timedelta(days=1)
+    primeiro_dia_mes_anterior = ultimo_dia_mes_anterior.replace(day=1)
+    
+    primeiro_dia_mes_anterior_str = primeiro_dia_mes_anterior.strftime('%Y-%m-%d')
+    ultimo_dia_mes_anterior_str = ultimo_dia_mes_anterior.strftime('%Y-%m-%d')
 
     cur = con.cursor()
     
@@ -68,7 +75,20 @@ def agregar_horas(con):
     horas_semana_anterior = int(total_semana_anterior / 60)
     min_restantes_semana_anterior = int(total_semana_anterior % 60)
 
-    return horas_hoje, min_restantes_hoje, horas_semana, min_restantes_semana, horas_mes, min_restantes_mes, horas_semana_anterior, min_restantes_semana_anterior
+    # Horas feitas no mês anterior
+    cur.execute("""
+        SELECT 
+            COALESCE(SUM(minutos), 0), 
+            COALESCE(SUM(pausas_min), 0) 
+        FROM log_estudo 
+        WHERE data >= ? AND data <= ?
+    """, (primeiro_dia_mes_anterior_str, ultimo_dia_mes_anterior_str))
+    minutos, pausas = cur.fetchone()
+    total_mes_anterior = minutos - pausas
+    horas_mes_anterior = int(total_mes_anterior / 60)
+    min_restantes_mes_anterior = int(total_mes_anterior % 60)
+
+    return horas_hoje, min_restantes_hoje, horas_semana, min_restantes_semana, horas_mes, min_restantes_mes, horas_semana_anterior, min_restantes_semana_anterior, horas_mes_anterior, min_restantes_mes_anterior
 
 def extrair_metas(con):
     cur = con.cursor()
