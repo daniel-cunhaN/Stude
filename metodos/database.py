@@ -58,6 +58,38 @@ def criar_tabelas(con):
         id INT PRIMARY KEY,
         hora_inicial TIMESTAMP,
         hora_final TIMESTAMP); """)
+
+        # 6. Tabela Inventário
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventario (
+            id INT PRIMARY KEY,
+            trofeus INT DEFAULT 0
+        );
+        """)
+        cur.execute("INSERT OR IGNORE INTO inventario (id, trofeus) VALUES (1, 0);")
+
+        # 7. Tabela Streak Status
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS streak_status (
+            id INT PRIMARY KEY,
+            streak_atual INT DEFAULT 0,
+            maior_streak INT DEFAULT 0,
+            congelamentos_ativos INT DEFAULT 0,
+            ultima_atividade DATE
+        );
+        """)
+        cur.execute("INSERT OR IGNORE INTO streak_status (id, streak_atual, maior_streak, congelamentos_ativos, ultima_atividade) VALUES (1, 0, 0, 0, NULL);")
+
+        # 8. Tabela Historico Conquistas
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS historico_conquistas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tipo_meta VARCHAR(50),
+            periodo VARCHAR(50),
+            data_conquista DATE
+        );
+        """)
+
         con.commit()
     except Exception as e:
         con.rollback()

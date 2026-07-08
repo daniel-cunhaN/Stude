@@ -6,30 +6,51 @@ import pandas as pd
 import altair as alt
 from metodos.database import iniciar_conexao, criar_tabelas, obter_tags
 from metodos.horas_e_metas import agregar_horas, extrair_metas
+from metodos.gamificacao import obter_inventario, obter_streak_status, atualizar_streak, registrar_estudo_streak, verificar_e_premiar_metas, comprar_congelamento
 from assets.utils import img_to_base64
 
 ICON_PATH = "assets/icon.png"
 
 st.set_page_config(page_title="Stude", page_icon=ICON_PATH, layout="centered")
 
-# Título com ícone customizado
+# Conexão BD
+con = iniciar_conexao()
+if "tabelas_criadas" not in st.session_state:
+    criar_tabelas(con)
+    st.session_state.tabelas_criadas = True
+
+# Título com ícone customizado, Streak e Troféus
 icon_base64 = img_to_base64(ICON_PATH)
+trofeus = obter_inventario(con)
+streak_dados = obter_streak_status(con)
+streak_atual = streak_dados["streak_atual"] if streak_dados else 0
+congelamentos_ativos = streak_dados["congelamentos_ativos"] if streak_dados else 0
+
+icone_streak = "🧊" if congelamentos_ativos > 0 else "🔥"
+
 st.markdown(f"""
-<div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; margin-top: -20px;">
-    <img src="data:image/png;base64,{icon_base64}" width="45" style="border-radius: 8px;">
-    <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">Stude</h1>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-top: -20px;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <img src="data:image/png;base64,{icon_base64}" width="45" style="border-radius: 8px;">
+        <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">Stude</h1>
+    </div>
+    <div style="display: flex; gap: 15px; font-size: 1.2rem; font-weight: bold; background-color: #1e1e1e; padding: 8px 12px; border-radius: 8px;">
+        <span>{icone_streak} {streak_atual}</span>
+        <span>🏆 {trofeus}</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 # CSS customizado (arquivo externo)
 with open("assets/styles.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-con = iniciar_conexao()
+
 try:
     con.rollback() # Limpa qualquer transação falha residual
 except:
     pass
 
 def carregar_dados(conexao):
+    atualizar_streak(conexao)
     st.session_state.tradutorTags = obter_tags(conexao)
     st.session_state.horas = agregar_horas(conexao)
     st.session_state.metas = extrair_metas(conexao)
@@ -38,16 +59,12 @@ def carregar_dados(conexao):
     resultado = cur.fetchone()
     st.session_state.nota_antiga = resultado[0] if resultado else ""
 
-if "tabelas_criadas" not in st.session_state:
-    criar_tabelas(con)
-    st.session_state.tabelas_criadas = True
-
 if "tradutorTags" not in st.session_state:
     carregar_dados(con)
 
 tradutorTags = st.session_state.tradutorTags
 
-tab1, tab2, tab3, tab4 = st.tabs(["Ciclos de Estudo", "Metas", "Dashboard", "Configurações"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Ciclos de Estudo", "Metas", "Dashboard", "Configurações", "Loja 🏆"])
 # ==========================================
 # 1. ABA 1: Ciclos de Estudo
 # ==========================================
@@ -110,7 +127,14 @@ with tab1:
                             (data_hoje, minutos_estudados, minutos_pausa, tag_escolhida_id)
                         )
                         con.commit()
+                        registrar_estudo_streak(con)
                         carregar_dados(con)
+                        
+                        # Verifica se bateu a meta para dar o trofeu
+                        h_hoje, m_hoje, h_semana, m_semana, h_mes, m_mes, h_semana_a, m_semana_a = st.session_state.horas
+                        meta_semana, meta_mes = st.session_state.metas
+                        verificar_e_premiar_metas(con, h_semana, h_mes, meta_semana, meta_mes)
+
                         st.toast(f"🎉 Sessão finalizada! Você estudou por {minutos_estudados} minutos.")
                         time.sleep(1)
                         st.rerun()
@@ -226,7 +250,6 @@ with tab1:
 # ABA 2: Metas
 # ==========================================
 with tab2:
-    st.header("Metas")
 
     # --- METAS DE ESTUDO ---
     with st.container(border=True):
@@ -346,43 +369,7 @@ with tab3:
                     st.metric("Recorde (1 Dia)", recorde_str)
                 
             st.divider()
-            
-            # --- CARD DE OFENSIVA (STREAK) ---
-            st.markdown("#### 🔥 Ofensiva Atual")
-            
-            # Pegar datas únicas onde houve estudo real
-            dias_unicos = pd.Series(df_logs[df_logs['minutos_liquidos'] > 0]['data_dt'].dt.date.unique()).sort_values(ascending=False)
-            ofensiva = 0
-            
-            if not dias_unicos.empty:
-                hoje_date = datetime.now().date()
-                ultimo_dia = dias_unicos.iloc[0]
-                
-                # Verifica se o último dia estudado foi hoje ou ontem
-                if (hoje_date - ultimo_dia).days <= 1:
-                    ofensiva = 1
-                    data_atual = ultimo_dia
-                    # Conta retroativamente os dias consecutivos
-                    for d in dias_unicos.iloc[1:]:
-                        if (data_atual - d).days == 1:
-                            ofensiva += 1
-                            data_atual = d
-                        else:
-                            break
-                            
-            if ofensiva > 0:
-                texto_ofensiva = f"<h2 style='text-align: center; color: #FF9800; margin-bottom: 0px;'>🔥 {ofensiva} dias seguidos!</h2>"
-                subtexto = "<p style='text-align: center; color: #b0bec5; margin-top: 0px;'>Continue assim para não quebrar a corrente!</p>"
-            else:
-                texto_ofensiva = f"<h2 style='text-align: center; color: #b0bec5; margin-bottom: 0px;'>💤 Nenhuma ofensiva ativa</h2>"
-                subtexto = "<p style='text-align: center; color: #b0bec5; margin-top: 0px;'>Estude hoje para iniciar sua corrente!</p>"
-                
-            with st.container(border=True):
-                st.markdown(texto_ofensiva, unsafe_allow_html=True)
-                st.markdown(subtexto, unsafe_allow_html=True)
-            
-            st.divider()
-            
+
             # --- LINHA 2: PRODUTIVIDADE POR DIA ---
             st.markdown("#### Produtividade Por Dia da Semana")
             dias_traduzidos = {
@@ -513,3 +500,25 @@ with tab4:
             except Exception as e:
                 con.rollback()
                 st.toast(f"Erro ao excluir matéria: {e}")
+
+# ==========================================
+# ABA 5: LOJA / CONQUISTAS
+# ==========================================
+with tab5:
+    st.markdown("#### 🛒 Loja de Recompensas")
+    st.write(f"Você tem **{obter_inventario(con)} troféus** disponíveis.")
+    
+    with st.container(border=True):
+        colA, colB = st.columns([3, 1], vertical_alignment="center")
+        with colA:
+            st.markdown("##### ☕ Descanso / Congelamento de Streak")
+            st.write("Custa **2 troféus**. Congela a sua ofensiva caso você fique um dia sem estudar. Seu progresso estará seguro!")
+        with colB:
+            if st.button("Comprar", use_container_width=True, type="primary"):
+                sucesso, msg = comprar_congelamento(con)
+                if sucesso:
+                    st.success(msg)
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.error(msg)
