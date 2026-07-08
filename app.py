@@ -159,7 +159,7 @@ with tab1:
             f"""
             <div style="text-align: center;">
                 <p style="font-size: 18px; color: #b0bec5; margin-bottom: -15px;">Horas feitas hoje</p>
-                <p style="font-size: 50px; color: #eb3d34; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
+                <p style="font-size: 50px; color: #2c9400; font-weight: bold; margin-top: 0px;">{h_hoje}h{m_hoje}min</p>
             </div>
             """, 
             unsafe_allow_html=True
@@ -407,6 +407,31 @@ with tab3:
     except Exception as e:
         st.error(f"Erro ao carregar o dashboard: {e}")
 
+
+# ==========================================
+# ABA 4: LOJA / CONQUISTAS
+# ==========================================
+with tab4:
+    st.markdown("#### 🛒 Loja de Recompensas")
+    st.write(f"Você tem **{obter_inventario(con)} troféus** disponíveis.")
+    
+    with st.container(border=True):
+        colA, colB = st.columns([3, 1], vertical_alignment="center")
+        with colA:
+            st.markdown("##### ☕ Descanso / Congelamento de Streak")
+            st.write("Custa **2 troféus**. Congela a sua ofensiva caso você fique um dia sem estudar. Seu progresso estará seguro!")
+        with colB:
+            if st.button("Comprar", use_container_width=True, type="primary"):
+                sucesso, msg = comprar_congelamento(con)
+                if sucesso:
+                    st.toast(msg)
+                    time.sleep(2)
+                    st.rerun()
+                elif msg == "⚠️ Você já tem um congelamento ativo! Guarde seus troféus.":
+                    st.toast(msg)
+                else:
+                    st.error(msg)
+
 # ==========================================
 # ABA 5: CONFIGURAÇÕES
 # ==========================================
@@ -489,25 +514,3 @@ with tab5:
             except Exception as e:
                 con.rollback()
                 st.toast(f"Erro ao excluir matéria: {e}")
-
-# ==========================================
-# ABA 4: LOJA / CONQUISTAS
-# ==========================================
-with tab4:
-    st.markdown("#### 🛒 Loja de Recompensas")
-    st.write(f"Você tem **{obter_inventario(con)} troféus** disponíveis.")
-    
-    with st.container(border=True):
-        colA, colB = st.columns([3, 1], vertical_alignment="center")
-        with colA:
-            st.markdown("##### ☕ Descanso / Congelamento de Streak")
-            st.write("Custa **2 troféus**. Congela a sua ofensiva caso você fique um dia sem estudar. Seu progresso estará seguro!")
-        with colB:
-            if st.button("Comprar", use_container_width=True, type="primary"):
-                sucesso, msg = comprar_congelamento(con)
-                if sucesso:
-                    st.success(msg)
-                    time.sleep(2)
-                    st.rerun()
-                else:
-                    st.error(msg)

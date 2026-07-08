@@ -126,7 +126,7 @@ def comprar_congelamento(con):
     custo = 2
 
     if status and status["congelamentos_ativos"] >= 1:
-        return False, "Você já tem um congelamento ativo! Guarde seus troféus."
+        return False, "⚠️ Você já tem um congelamento ativo! Guarde seus troféus."
 
     if trofeus >= custo:
         cur = con.cursor()
