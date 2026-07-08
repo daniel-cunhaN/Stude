@@ -357,8 +357,6 @@ with tab3:
             with col3:
                 with st.container(border=True):
                     st.metric("Recorde (1 Dia)", recorde_str)
-                
-            st.divider()
             
             # --- LINHA 2: PRODUTIVIDADE POR DIA ---
             st.markdown("#### Produtividade Por Dia da Semana")
@@ -467,11 +465,11 @@ with tab5:
             with col_botao2:
                 st.markdown('<span class="red-button-marker"></span>', unsafe_allow_html=True)
                 submit_excluirMateria = st.form_submit_button("Excluir Matéria", use_container_width=True)
+                
         # --- Visualização de Tags ---
-        st.markdown("##### 🏷️Tags registradas:")
+        st.markdown("##### 🏷️ Tags")
         if tradutorTags:
-            visualizarTags = pd.DataFrame(list(tradutorTags.keys()), columns=["tag"])
-            st.dataframe(visualizarTags, use_container_width=True, hide_index=True)
+            st.pills("Tags Atuais", list(tradutorTags.keys()), label_visibility="collapsed")
         else:
             st.info("Nenhum registro encontrado ainda.")    
             
