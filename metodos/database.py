@@ -26,11 +26,18 @@ def criar_tabelas(con):
         CREATE TABLE IF NOT EXISTS log_estudo(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             data DATE NOT NULL,
+            hora TEXT,
             minutos INT,
             pausas_min INT,
             tag_id INT REFERENCES tags(id)
         );
         """)
+        
+        # Migração: Adicionar coluna 'hora' para usuários com bancos de dados antigos
+        try:
+            cur.execute("ALTER TABLE log_estudo ADD COLUMN hora TEXT;")
+        except Exception:
+            pass
         
         # 3. Tabela metas
         cur.execute("""

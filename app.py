@@ -26,6 +26,10 @@ streak_dados = obter_streak_status(con)
 streak_atual = streak_dados["streak_atual"] if streak_dados else 0
 meta_semana, meta_mes = extrair_metas(con)
 
+# ==========================================
+# STATUS BAR
+# ==========================================
+
 st.markdown(f"""
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-top: -20px;">
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -33,7 +37,7 @@ st.markdown(f"""
         <h1 style="margin: 0; padding: 0; font-size: 2.2rem;">Stude</h1>
     </div>
     <div style="display: flex; gap: 15px; font-size: 1.2rem; font-weight: bold; background-color: #1e1e1e; padding: 8px 12px; border-radius: 8px;">
-        <span>S{meta_semana}H | M{meta_mes}H</span>
+        <span>S{meta_semana}h | M{meta_mes}h</span>
         <span>🔥 {streak_atual}</span>
         <span>🏆 {trofeus}</span>
     </div>
@@ -121,9 +125,10 @@ with tab1:
                         minutos_estudados = max(0, int(resultado[0]))
                         tag_escolhida_id = tradutorTags[tag_selecionada]
                         data_hoje = datetime.now().strftime('%Y-%m-%d')
+                        hora_atual = datetime.now().strftime('%H:%M:%S')
                         cur.execute(
-                            "INSERT INTO log_estudo (data, minutos, pausas_min, tag_id) VALUES (?, ?, ?, ?)",
-                            (data_hoje, minutos_estudados, minutos_pausa, tag_escolhida_id)
+                            "INSERT INTO log_estudo (data, hora, minutos, pausas_min, tag_id) VALUES (?, ?, ?, ?, ?)",
+                            (data_hoje, hora_atual, minutos_estudados, minutos_pausa, tag_escolhida_id)
                         )
                         con.commit()
                         registrar_estudo_streak(con)
@@ -310,7 +315,7 @@ with tab3:
     try:
         # Consulta SQL para calcular os minutos líquidos (minutos - pausas)
         query = """
-            SELECT l.data, (l.minutos - COALESCE(l.pausas_min, 0)) as minutos_liquidos, t.tag as materia 
+            SELECT l.data, l.hora, (l.minutos - COALESCE(l.pausas_min, 0)) as minutos_liquidos, t.tag as materia 
             FROM log_estudo l
             LEFT JOIN tags t ON l.tag_id = t.id
         """
@@ -383,8 +388,6 @@ with tab3:
             
             st.altair_chart(bar_chart, use_container_width=True)
             
-            st.divider()
-            
             # --- LINHA 3: GRÁFICO DE PIZZA (TÓPICOS) ---
             st.markdown("#### Tópicos Mais Estudados")
             df_materia = df_logs.groupby('materia')['minutos_liquidos'].sum().reset_index()
@@ -398,6 +401,35 @@ with tab3:
             ).properties(height=400)
             
             st.altair_chart(pie_chart, use_container_width=True)
+            
+            # --- LINHA 4: DESEMPENHO POR PERÍODO ---
+            st.markdown("#### Desempenho por Período do Dia")
+            
+            df_logs['hora_dt'] = pd.to_datetime(df_logs['hora'], format='%H:%M:%S', errors='coerce')
+            
+            def classificar_periodo(h):
+                if pd.isna(h): return 'Indefinido'
+                hour = h.hour
+                if 5 <= hour < 12: return 'Manhã'
+                elif 12 <= hour < 18: return 'Tarde'
+                elif 18 <= hour < 24: return 'Noite'
+                else: return 'Madrugada'
+                
+            df_logs['periodo'] = df_logs['hora_dt'].apply(classificar_periodo)
+            df_periodo = df_logs.groupby('periodo')['minutos_liquidos'].sum().reset_index()
+            df_periodo['media_horas'] = df_periodo['minutos_liquidos'] / 60
+            df_periodo['Tempo Total'] = df_periodo['minutos_liquidos'].apply(lambda x: f"{int(x//60)}h {int(x%60)}min")
+            
+            ordem_periodos = ['Manhã', 'Tarde', 'Noite', 'Madrugada', 'Indefinido']
+            
+            bar_periodo = alt.Chart(df_periodo).mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
+                x=alt.X('periodo:N', sort=ordem_periodos, title="", axis=alt.Axis(labelAngle=0)),
+                y=alt.Y('media_horas:Q', title="Total de Horas"),
+                color=alt.Color('periodo:N', legend=None, scale=alt.Scale(scheme='set2')),
+                tooltip=[alt.Tooltip('periodo:N', title='Período'), alt.Tooltip('Tempo Total:N', title='Tempo Estudado')]
+            ).properties(height=350)
+            
+            st.altair_chart(bar_periodo, use_container_width=True)
             
         else:
             st.info("Nenhum ciclo de estudo registrado ainda. Finalize um ciclo na aba 'Ciclos de Estudo' para ver seus gráficos!")
