@@ -22,4 +22,4 @@
   * 🛒 **Loja de Troféus:** Gaste seus troféus congelando sua streak e dando um descanso a si mesmo!
 
 ## 💻 Setup 
-[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.1.0/StudeSetup-2.1.0.exe)
+[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.2.0/StudeSetup-2.2.0.exe)
