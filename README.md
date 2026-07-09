@@ -18,8 +18,6 @@
   * 📊 **Métricas Avançadas:** Acompanhe gráficos detalhados do seu progresso de estudos diário, semanal e mensal.
   * 🎯 **Acompanhamento de Metas:** Monitore de perto a constância e o cumprimento de metas semanais e mensais.
   * 📚 **Análise por Matéria:** Visualize a distribuição do seu tempo e entenda em quais disciplinas você tem focado mais através de gráficos intuitivos.
-  * 🏆 **Troféus:** Acumule trófeus cumprindo metas e gaste na loja de troféus.
-  * 🛒 **Loja de Troféus:** Gaste seus troféus congelando sua streak e dando um descanso a si mesmo!
 
 ## 💻 Setup 
-[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.2.0/StudeSetup-2.2.0.exe)
+[Download](https://github.com/daniel-cunhaN/Stude/releases/download/v2.1.0/StudeSetup-2.1.0.exe)
